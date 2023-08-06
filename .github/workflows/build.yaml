@@ -22,12 +22,16 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Downcase repository name
+        id: downcase
+        run: |
+          echo "::set-output name=repository::${{ github.repository,, }}"
       - name: Build and push Docker image
         uses: docker/build-push-action@v3.2.0
         with:
           context: .
           push: true
           tags: |
-            ghcr.io/${{ github.repository }}:latest
+            ghcr.io/${{ github.repositor }}:latest
           cache-from: type=registry,ref=ghcr.io/${{ github.repository }}:latest
           cache-to: type=inline
