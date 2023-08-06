@@ -25,7 +25,7 @@ jobs:
       - name: Downcase repository name
         id: downcase
         run: |
-          echo "::set-output name=repository::${{ github.repository,, }}"
+          echo "::set-output name=repository::$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')"
       - name: Build and push Docker image
         uses: docker/build-push-action@v3.2.0
         with:
