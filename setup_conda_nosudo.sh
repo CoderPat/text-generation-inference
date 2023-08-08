@@ -8,7 +8,7 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 TEST_EXT=true
 N_THREADS=8
 
-set -euo pipefail
+set -eo pipefail
 
 # check if CONDA_HOME is set and create environment
 if [ -z "$CONDA_HOME" ]
@@ -19,11 +19,13 @@ fi
 source ${CONDA_HOME}/etc/profile.d/conda.sh
 conda create -y -n ${ENV_NAME} python=3.9
 conda activate ${ENV_NAME}
+# python can't handle this dependency madness, switch to C++
+conda install -y -c conda-forge mamba
 
 # # Install dependencies and gxx
-conda install -y "gxx<12.0" -c conda-forge
-conda install -y -c conda-forge "rust>=1.65.0"
-conda install -y -c "nvidia/label/cuda-11.8.0" cuda-toolkit
+mamba install -y "gxx<12.0" -c conda-forge
+mamba install -y -c conda-forge "rust>=1.65.0"
+mamba install -y -c "nvidia/label/cuda-11.8.0" cuda-toolkit
 
 # bring in the conda environment variables forward
 # (needed for proper linking)
