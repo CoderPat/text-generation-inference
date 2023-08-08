@@ -1,13 +1,10 @@
-vllm_commit := 084ca75d4271f8f67be731bc58e0d41d8e0afd3a
+vllm_commit := "v0.1.2"
 
 vllm:
     # Clone vllm
-	git clone https://github.com/OlivierDehaene/vllm.git
+	git clone https://github.com/vllm-project/vllm.git
 
-build-vllm: vllm
-	cd vllm && git fetch && git checkout $(vllm_commit)
-	cd vllm && python setup.py build
-
-install-vllm: build-vllm
+install-vllm: vllm
 	pip uninstall vllm -y || true
-	cd vllm && python setup.py install
+	cd vllm && git fetch && git checkout $(vllm_commit)
+	cd vllm && pip install .

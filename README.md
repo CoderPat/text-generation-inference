@@ -2,7 +2,7 @@
 
 ![image](https://github.com/huggingface/text-generation-inference/assets/3841370/38ba1531-ea0d-4851-b31a-a6d4ddc944b0)
 
-# Text Generation Inference
+# LTI's **Text Generation Inference** Fork
 
 <a href="https://github.com/huggingface/text-generation-inference">
   <img alt="GitHub Repo stars" src="https://img.shields.io/github/stars/huggingface/text-generation-inference?style=social">
@@ -15,8 +15,15 @@
 </a>
 </div>
 
-A Rust, Python and gRPC server for text generation inference. Used in production at [HuggingFace](https://huggingface.co)
-to power LLMs api-inference widgets.
+A Rust, Python and gRPC server for text generation inference. 
+
+Forked from [HuggingFace](https://huggingface.co)'s [Text Generation Inference](https://github.com/huggingface/text-generation-inference/) project (prior to its re-licensing), it's commercial-friendly and licensed under the Apache 2.0.
+
+## *A note on this fork*
+
+This fork was created mainly due to two reasons: 
+1. Primarily, it allows us faster iteration and more flexibility, which is essential for our research uses. It also allows more control over development and documentation, crucial for our in-house uses at CMU.
+2. The fork also gives us the opportunity to maintain and update a fully open-source, commercial-friendly framework for fast LLM inference (the original goal of the project, and the intention of many contributors who helped before the re-licensing).
 
 ## Table of contents
 
@@ -76,6 +83,15 @@ or
 `AutoModelForSeq2SeqLM.from_pretrained(<model>, device_map="auto")`
 
 ## Get started
+
+### *For LTI/cluster users*
+
+If you are an LTI student using one of its cluster (or generally belong to an academic cluster that doesn't have docker installed), you can side-steps problems with installing system dependencies by using the [(mini)conda](https://docs.conda.io/en/latest/miniconda.html) package manager. Set the CONDA_HOME environment variable to the path of your conda installation, and run the following commands:
+
+```shell
+CONDA_HOME=/path/to/conda
+bash setup_conda_nosudo.sh
+```
 
 ### Docker
 
