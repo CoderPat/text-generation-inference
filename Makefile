@@ -42,6 +42,9 @@ python-client-tests:
 
 python-tests: python-server-tests python-client-tests
 
+run-open-llama-3b-v2:
+	text-generation-launcher --model-id openlm-research/open_llama_3b_v2 --port 8080
+
 run-falcon-7b-instruct:
 	text-generation-launcher --model-id tiiuae/falcon-7b-instruct --port 8080
 

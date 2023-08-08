@@ -8,7 +8,7 @@ prompts = [
 ]
 sampling_params = vllm.SamplingParams(temperature=0.8, top_p=0.95)
 
-llm = vllm.LLM(model="openlm-research/open_llama_13b")
+llm = vllm.LLM(model="openlm-research/open_llama_3b_v2")
 
 # time the generation
 start = time.time()

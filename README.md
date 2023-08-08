@@ -23,7 +23,7 @@ Forked from [HuggingFace](https://huggingface.co)'s [Text Generation Inference](
 
 This fork was created mainly due to two reasons: 
 1. Primarily, it allows us faster iteration and more flexibility, which is essential for our research uses. It also allows more control over development and documentation, crucial for our in-house uses at CMU.
-2. The fork also gives us the opportunity to maintain and update a fully open-source, commercial-friendly framework for fast LLM inference (the original goal of the project, and the intention of many contributors who helped before the re-licensing).
+2. While we understand the reasons behind the re-licensing, we don't want our (research) contributions to be locked behind a restrictive license.
 
 ## Table of contents
 
