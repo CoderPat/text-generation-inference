@@ -185,10 +185,12 @@ class FlashLlamaAttention(torch.nn.Module):
         self.hidden_size = config.hidden_size
         self.head_size = self.hidden_size // self.num_heads
 
-        self.rotary_emb = PositionRotaryEmbedding.load(
-            prefix=f"{prefix}.rotary_emb", weights=weights
+        self.rotary_emb = PositionRotaryEmbedding.static(
+            config=config, 
+            dim=self.head_size, 
+            base=10000.0, 
+            device=weights.device
         )
-
         self.softmax_scale = self.head_size**-0.5
 
         if self.num_heads % weights.process_group.size() != 0:
@@ -275,12 +277,15 @@ class FlashLlamaAttention(torch.nn.Module):
                 query,
                 kv_cache[0],
                 kv_cache[1],
-                self.kv_head_mapping,
+                # commented for now due to move to another vllm version
+                # not sure if it breaks anything
+                # self.kv_head_mapping, 
                 self.softmax_scale,
                 block_tables,
                 input_lengths,
                 block_size,
                 max_s,
+                None,
             )
 
         return self.o_proj(attn_output.view(-1, self.num_heads * self.head_size))

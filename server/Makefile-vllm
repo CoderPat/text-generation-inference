@@ -3,8 +3,12 @@ vllm_commit := "v0.1.2"
 vllm:
     # Clone vllm
 	git clone https://github.com/vllm-project/vllm.git
+	cd vllm && git fetch && git checkout $(vllm_commit)
 
 install-vllm: vllm
 	pip uninstall vllm -y || true
-	cd vllm && git fetch && git checkout $(vllm_commit)
 	cd vllm && pip install .
+
+test-vllm: vllm
+	pip install pytest
+	cd vllm && pytest -q -s tests/kernels/test_attention.py

@@ -17,6 +17,8 @@ is_sm90 = major == 9 and minor == 0
 HAS_FLASH_ATTN = False
 try:
     import flash_attn_2_cuda as flash_attn_cuda
+    import flash_attn
+    HAS_FLASH_ATTN = True
 except ImportError as e:
     raise ImportError(
         f"Flash Attention V2 is not installed.\n"

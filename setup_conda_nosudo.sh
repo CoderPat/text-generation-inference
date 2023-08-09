@@ -6,10 +6,12 @@
 ENV_NAME=tgi-env
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 N_THREADS=8
-# currently can only build in TIR with this set to false
+# currently can only build in TIR without extensions
 # seems un-important, as it only affects BLOOM/NEOX
 BUILD_EXTENSIONS=false
 TEST_EXTRA=true
+BENCHMARK=true
+SERVER_WAIT=180
 
 set -eo pipefail
 
@@ -30,9 +32,9 @@ conda install -y -c conda-forge mamba
 export PATH=$(echo $PATH | tr ":" "\n" | grep -v cuda | grep -v gcc | tr "\n" ":" | sed 's/:$//g')
 export LD_LIBRARY_PATH=$(echo $LD_LIBRARY_PATH | tr ":" "\n" | grep -v cuda | grep -v gcc | tr "\n" ":" | sed 's/:$//g')
 
-# # Install dependencies and gxx
+# # Install dependencies
 mamba install -y "gxx<12.0" -c conda-forge
-mamba install -y -c conda-forge curl
+mamba install -y -c conda-forge curl git
 mamba install -y -c conda-forge "rust>=1.65.0"
 mamba install -y -c "nvidia/label/cuda-11.8.0" cuda-toolkit
 
@@ -53,9 +55,8 @@ unzip -o $PROTOC_ZIP -d ~/local/ bin/protoc
 unzip -o $PROTOC_ZIP -d ~/local/ 'include/*'
 cd $DIR
 rm -rf /tmp/protoc
-
-export PATH=~/local/bin:$PATH
 export LD_LIBRARY_PATH=~/local/lib:$LD_LIBRARY_PATH
+export PATH=~/local/bin:$PATH
 
 # download and build openssl
 mkdir -p /tmp/openssl
@@ -77,7 +78,7 @@ OPENSSL_DIR=${DIR}/.openssl \
 OPENSSL_LIB_DIR=${DIR}/.openssl/lib \
 OPENSSL_INCLUDE_DIR=${DIR}/.openssl/include \
 BUILD_EXTENSIONS=$BUILD_EXTENSIONS \
-    make install-server
+    make install
 
 # install ninja for faster compilation of CUDA kernels and setup workdir 
 pip install ninja
@@ -85,12 +86,14 @@ cd ${DIR}/server
 mkdir -p workdir 
 
 # install vllm
+rm -rf workdir/*
 cp Makefile-vllm workdir/Makefile
 cd workdir && sleep 1
 make -j $N_THREADS install-vllm
+make test-vllm
 cd ${DIR}/server
 if [ "$TEST_EXTRA" = true ] ; then
-    # run vllm_testscript.py and check if it works
+    make test-vllm
     python3 vllm_testscript.py
 fi
 rm -rf workdir/*
@@ -99,16 +102,39 @@ rm -rf workdir/*
 cd ${DIR}/server
 cp Makefile-flash-att workdir/Makefile
 cd workdir && sleep 1
-make -j $N_THREADS test-flash-attention
+make -j $N_THREADS install-flash-attention
+if [ "$TEST_EXTRA" = true ] ; then
+    make test-flash-attention
+fi
 cd ${DIR}/server
 rm -rf workdir
 
-# # override protobuf
+# override protobuf
 pip install 'protobuf<3.21'
 
 # # install python client
 cd ${DIR}/clients/python
 pip install .
 
-cd $DIR
-make run-open-llama-3b-v2
+# run a example server
+if [ "$BENCHMARK" = true ] ; then
+    cd ${DIR}
+    # trap signal to avoid orphan server process
+    trap "trap - SIGTERM && kill -- -$$" SIGINT SIGTERM EXIT
+    # launch server as background process, checking for errors
+    make run-llama2-benchmark &
+    # sleep to make sure server has time to boot
+    sleep $SERVER_WAIT
+    
+    OPENSSL_DIR=${DIR}/.openssl \
+    OPENSSL_LIB_DIR=${DIR}/.openssl/lib \
+    OPENSSL_INCLUDE_DIR=${DIR}/.openssl/include \
+        make install-benchmark
+    python benchmark/dump_fast_tokenizer.py --tokenizer-name=lmsys/vicuna-7b-v1.5 --output=/tmp/vicuna-7b-v1.5/
+    text-generation-benchmark --tokenizer-name=/tmp/vicuna-7b-v1.5
+fi
+
+# set default conda environment variables
+conda env config vars set LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
+conda env config vars set PATH=${PATH}
+conda env config vars set CUDA_HOME=${CUDA_HOME}
