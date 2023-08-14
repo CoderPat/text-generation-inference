@@ -1,4 +1,4 @@
-vllm_commit := "v0.1.2"
+vllm_commit := "96853af"
 
 vllm:
     # Clone vllm

@@ -277,15 +277,13 @@ class FlashLlamaAttention(torch.nn.Module):
                 query,
                 kv_cache[0],
                 kv_cache[1],
-                # commented for now due to move to another vllm version
-                # not sure if it breaks anything
-                # self.kv_head_mapping, 
+                self.kv_head_mapping,
                 self.softmax_scale,
                 block_tables,
                 input_lengths,
                 block_size,
                 max_s,
-                None,
+                None
             )
 
         return self.o_proj(attn_output.view(-1, self.num_heads * self.head_size))
@@ -388,6 +386,7 @@ class FlashLlamaLayer(nn.Module):
 class FlashLlamaModel(torch.nn.Module):
     def __init__(self, config, weights):
         super().__init__()
+        self.config = config
 
         process_group = weights.process_group
         self.tp_rank = process_group.rank()

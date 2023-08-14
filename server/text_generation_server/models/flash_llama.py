@@ -2,7 +2,8 @@ import torch
 import torch.distributed
 
 from opentelemetry import trace
-from transformers.models.llama import LlamaTokenizer, LlamaTokenizerFast
+from transformers import AutoTokenizer
+from transformers.models.llama import LlamaTokenizer
 from typing import Optional
 
 from text_generation_server.models import FlashCausalLM
@@ -44,7 +45,8 @@ class FlashLlama(FlashCausalLM):
                 trust_remote_code=trust_remote_code,
             )
         except Exception:
-            tokenizer = LlamaTokenizerFast.from_pretrained(
+            # use AutoTokenizer as fallback in case it's a costum tokenizer
+            tokenizer = AutoTokenizer.from_pretrained(
                 model_id,
                 revision=revision,
                 padding_side="left",
