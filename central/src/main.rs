@@ -58,7 +58,7 @@ type Models = Arc<Mutex<HashMap<String, ModelRecord>>>;
 
 
 // define function to print model info
-fn printModelRecord(model: &ModelRecord) {
+fn print_model_record(record: &ModelRecord) {
     if record.is_quantized {
         println!("\t{} (quant) - {} by {}", record.name, record.address, record.owner);
     } else {
@@ -149,10 +149,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                         let address = format!("{}:{}", model_ip, model_port);
                         models.lock().await.insert(
                             info.model_id.clone(), 
+                            // TODO: this is not the correct values
+                            // we should get these from the model
                             ModelRecord {
                                 name: info.model_id.clone(),
                                 address: address,
                                 owner: user.to_string(),
+                                is_quantized: false,
                             });
                     } else {
                         println!("Model not alive");
@@ -197,12 +200,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             // print models that stayed, one in each line
             println!("Current Models:");
             for (model, record) in models.iter() {
-                printModelRecord(record);
+                print_model_record(record);
             }
             // print dropped models
             println!("Dropped Models:");
             for (model, record) in dropped_models.iter() {
-                printModelRecord(record);
+                print_model_record(record);
             }
 
             std::mem::drop(models);

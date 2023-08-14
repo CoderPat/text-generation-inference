@@ -10,7 +10,7 @@ members = [
 
 [workspace.package]
 version = "0.9.5"
-edition = "2023"
+edition = "2021"
 authors = ["Patrick Fernandes"]
 homepage = "https://github.com/coderpat/text-generation-inference"
 

@@ -55,8 +55,16 @@ run-llama2-vicuna-7b-quantize:
 	text-generation-launcher --model-id lmsys/vicuna-7b-v1.5 --port 8080 --quantize bitsandbytes
 
 run-llama2-vicuna-13b:
-	text-generation-launcher --model-id lmsys/vicuna-13b-v1.5 --port 8081 \
-		--master-port 29600 --shard-uds-path=/tmp/text-generation-server-2
+	text-generation-launcher --model-id lmsys/vicuna-13b-v1.5 --port 8080
+
+run-llama2-vicuna-13b-quantize:
+	text-generation-launcher --model-id lmsys/vicuna-13b-v1.5 --port 8080 --quantize bitsandbytes
+
+run-llama2-vicuna-33b-quantize:
+	text-generation-launcher --model-id lmsys/vicuna-33b-v1.3 --port 8080 --quantize bitsandbytes
+
+run-llama2-70b-instruct-quantize:
+	text-generation-launcher --model-id upstage/Llama-2-70b-instruct-v2 --port 8080 --quantize bitsandbytes
 
 run-falcon-7b-instruct:
 	text-generation-launcher --model-id tiiuae/falcon-7b-instruct --port 8080

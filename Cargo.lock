@@ -2995,7 +2995,7 @@ dependencies = [
 
 [[package]]
 name = "text-generation-benchmark"
-version = "0.9.4"
+version = "0.9.5"
 dependencies = [
  "average",
  "clap",
@@ -3015,7 +3015,7 @@ dependencies = [
 
 [[package]]
 name = "text-generation-central"
-version = "0.9.4"
+version = "0.9.5"
 dependencies = [
  "bytes",
  "chrono",
@@ -3023,7 +3023,6 @@ dependencies = [
  "reqwest",
  "serde",
  "serde_json",
- "thiserror",
  "tokio",
  "urlencoding 1.3.3",
  "warp",
@@ -3032,7 +3031,7 @@ dependencies = [
 
 [[package]]
 name = "text-generation-client"
-version = "0.9.4"
+version = "0.9.5"
 dependencies = [
  "futures",
  "grpc-metadata",
@@ -3048,7 +3047,7 @@ dependencies = [
 
 [[package]]
 name = "text-generation-launcher"
-version = "0.9.4"
+version = "0.9.5"
 dependencies = [
  "clap",
  "ctrlc",
@@ -3066,7 +3065,7 @@ dependencies = [
 
 [[package]]
 name = "text-generation-router"
-version = "0.9.4"
+version = "0.9.5"
 dependencies = [
  "async-stream",
  "axum",

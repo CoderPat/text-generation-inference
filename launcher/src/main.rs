@@ -357,11 +357,9 @@ fn shard_manager(
         shard_args.push("--sharded".to_string());
     }
 
-    mut is_quantized = false;
     if let Some(quantize) = quantize {
         shard_args.push("--quantize".to_string());
         shard_args.push(quantize.to_string())
-        is_quantized = true;
     }
 
     if let Some(dtype) = dtype {
@@ -1124,7 +1122,7 @@ fn main() -> Result<(), LauncherError> {
         // build address string with hostnmae and port
         address: format!("{}:{}", args.hostname, args.port),
         owner: whoami::username(),
-        is_quantized: is_quantized
+        is_quantized: args.quantize.is_some()
     };
 
     spawn_shards(
