@@ -14,6 +14,9 @@ install-router:
 install-launcher:
 	cd launcher && cargo install --path .
 
+install-central:
+	cd central && cargo install --path .
+
 install-benchmark:
 	cd benchmark && cargo install --path .
 
@@ -47,6 +50,13 @@ run-llama2-benchmark:
 
 run-llama2-vicuna-7b:
 	text-generation-launcher --model-id lmsys/vicuna-7b-v1.5 --port 8080
+
+run-llama2-vicuna-7b-quantize:
+	text-generation-launcher --model-id lmsys/vicuna-7b-v1.5 --port 8080 --quantize bitsandbytes
+
+run-llama2-vicuna-13b:
+	text-generation-launcher --model-id lmsys/vicuna-13b-v1.5 --port 8081 \
+		--master-port 29600 --shard-uds-path=/tmp/text-generation-server-2
 
 run-falcon-7b-instruct:
 	text-generation-launcher --model-id tiiuae/falcon-7b-instruct --port 8080

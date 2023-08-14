@@ -3,9 +3,12 @@
 # It sidesteps system-wide installations by relying on conda for most packages
 # and by building openssl from source
 # TODO: only got it to work with a static build of OpenSSL, which is not ideal
-ENV_NAME=tgi-env
+ENV_NAME=tgi-env-v2
+# get the directory of this script, and go one up to get the root directory
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+DIR="$(dirname "$DIR")"
 N_THREADS=8
+
 # currently can only build in TIR without extensions
 # seems un-important, as it only affects BLOOM/NEOX
 BUILD_EXTENSIONS=false
@@ -26,6 +29,16 @@ conda create -y -n ${ENV_NAME} python=3.9
 conda activate ${ENV_NAME}
 # python can't handle this dependency madness, switch to C++
 conda install -y -c conda-forge mamba
+
+# check if `module` is available and unload gcc and cuda modules
+if [ -x "$(command -v module)" ]
+then
+    # get list of loaded modules, grep for gcc and unload all gcc modules found
+    # TODO: Fix this, it's not working
+    # For now, unload manually
+    # module list | grep gcc | sed 's/ //g' | sed 's/(gcc)//g' | xargs -I{} module unload {}
+    # module unload "cuda*"
+fi
 
 # remove possible extra cuda and gccs from path
 # (not sure if needed, but added during debugging and kept for now)
