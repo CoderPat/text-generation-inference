@@ -3,7 +3,7 @@
 # It sidesteps system-wide installations by relying on conda for most packages
 # and by building openssl from source
 # TODO: only got it to work with a static build of OpenSSL, which is not ideal
-ENV_NAME=tgi-env-v2
+ENV_NAME=tgi-env
 # get the directory of this script, and go one up to get the root directory
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 DIR="$(dirname "$DIR")"

@@ -23,7 +23,10 @@ Forked from [HuggingFace](https://huggingface.co)'s [Text Generation Inference](
 
 This fork was created mainly due to two reasons: 
 1. Primarily, it allows us faster iteration and more flexibility, which is essential for our research uses. It also allows more control over development and documentation, crucial for our in-house uses at CMU.
-2. While we understand the reasons behind the re-licensing, we don't want our (research) contributions to be locked behind a restrictive license.
+2. While we understand the reasons behind the re-licensing, we don't want our (research) contributions to be locked behind a restrictive license. This fork will not sync with the upstream repository, and will be updated independently. 
+
+*For contributors*: If HuggingFace's upstream has a feature that you want to use, please open an issue first and discuss porting the functionality independently. 
+Do not just copy the code over, as it will be rejected.
 
 ## Table of contents
 
@@ -86,12 +89,56 @@ or
 
 ### *For LTI/cluster users*
 
-If you are an LTI student using one of its cluster (or generally belong to an academic cluster that doesn't have docker installed), you can side-steps problems with installing system dependencies by using the [(mini)conda](https://docs.conda.io/en/latest/miniconda.html) package manager. Set the CONDA_HOME environment variable to the path of your conda installation, and run the following commands:
+If you are new to this library, as it has been already being used in your cluster, we recommend by starting with a *client-only* installation.
+For example, to install the python client in a new conda environment, run:
 
 ```shell
-CONDA_HOME=/path/to/conda
-bash setup_conda_nosudo.sh
+cd clients/python
+pip install .
 ```
+
+This will install the python client. You can then query the API to list the models available in your cluster, and use models for inference.
+
+```python
+from text_generation import Client
+
+# get current models
+models = Client.list_from_central()
+model_addr = models[0]["address"]
+
+client = Client(model_addr)
+print(client.generate("What is Deep Learning?", max_new_tokens=20).generated_text)
+
+text = ""
+for response in client.generate_stream("What is Deep Learning?", max_new_tokens=20):
+    if not response.token.special:
+        text += response.token.text
+print(text)
+```
+
+#### Running your own servers
+
+If you are an LTI student using one of its cluster (or generally belong to an academic cluster that doesn't have docker installed), you can side-steps problems with installing system dependencies by using the [(mini)conda](https://docs.conda.io/en/latest/miniconda.html) package manager. 
+
+Set the CONDA_HOME environment variable to the path of your conda installation, and run the following commands:
+
+```shell
+export CONDA_HOME=/path/to/conda
+bash setup_scripts/conda_server.sh
+```
+
+This will create a conda environment with all the dependencies needed to run the model servers.
+
+You should then be able to launch models with the `text-generation-launcher` command, or by using one of the predefined MAKE rules
+```shell
+conda activate tgi-env
+make run-llama2-vicuna-7b
+```
+
+#### Setting up a Central server
+
+#### Chat-UI
+
 
 ### Docker
 
@@ -128,22 +175,7 @@ curl 127.0.0.1:8080/generate_stream \
 
 or from Python:
 
-```shell
-pip install text-generation
-```
 
-```python
-from text_generation import Client
-
-client = Client("http://127.0.0.1:8080")
-print(client.generate("What is Deep Learning?", max_new_tokens=20).generated_text)
-
-text = ""
-for response in client.generate_stream("What is Deep Learning?", max_new_tokens=20):
-    if not response.token.special:
-        text += response.token.text
-print(text)
-```
 
 ### API documentation
 
