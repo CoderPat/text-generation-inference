@@ -20,7 +20,7 @@ install-central:
 install-benchmark:
 	cd benchmark && cargo install --path .
 
-install: install-server install-router install-launcher install-custom-kernels
+install: install-server install-router install-launcher install-central install-custom-kernels
 
 server-dev:
 	cd server && make run-dev
