@@ -30,6 +30,7 @@ pub struct ModelRecord {
     pub name: String,
     pub address: String,
     pub owner: String,
+    pub is_quantized: bool,
 }
 
 #[derive(Deserialize, Clone, Debug)]
@@ -54,6 +55,16 @@ struct ModelInfo {
 }
 
 type Models = Arc<Mutex<HashMap<String, ModelRecord>>>;
+
+
+// define function to print model info
+fn printModelRecord(model: &ModelRecord) {
+    if record.is_quantized {
+        println!("\t{} (quant) - {} by {}", record.name, record.address, record.owner);
+    } else {
+        println!("\t{} - {} by {}", record.name, record.address, record.owner);
+    }
+}
 
 #[tokio::main]
 
@@ -186,12 +197,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             // print models that stayed, one in each line
             println!("Current Models:");
             for (model, record) in models.iter() {
-                println!("\t{} - {} by {}", model, record.address, record.owner);
+                printModelRecord(record);
             }
             // print dropped models
             println!("Dropped Models:");
             for (model, record) in dropped_models.iter() {
-                println!("\t{} - {} by {}", model, record.address, record.owner);
+                printModelRecord(record);
             }
 
             std::mem::drop(models);
