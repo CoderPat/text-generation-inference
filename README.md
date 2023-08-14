@@ -28,6 +28,74 @@ This fork was created mainly due to two reasons:
 *For contributors*: If HuggingFace's upstream has a feature that you want to use, please open an issue first and discuss porting the functionality independently. 
 Do not just copy the code over, as it will be rejected.
 
+### *For LTI/cluster users*
+
+#### Getting started
+
+If you are new to using this library, and as it has being used in your cluster, we recommend by starting with a *client-only* installation, and using models launched by other users.
+
+To start, the `TGI_CENTRAL_ADDRESS` needs to be set, so that the client can know which servers to connect to. For example, in the LTI cluster, run
+
+```shell
+echo "export TGI_CENTRAL_ADDRESS=tir-1-11:8765" >> ~/.bashrc
+source ~/.bashrc
+```
+
+To use the python client, install it with
+
+```shell
+cd clients/python
+pip install .
+```
+
+You can then query the API to list the models available in your cluster, and use models for inference.
+
+```python
+from text_generation import Client
+
+# get current models
+models = Client.list_from_central()
+model_addr = models[0]["address"]
+
+client = Client(model_addr)
+print(client.generate("What is Deep Learning?", max_new_tokens=20).generated_text)
+```
+
+#### Running your own servers
+
+If you are an LTI student using one of its cluster (or generally belong to an academic cluster that doesn't have docker installed), you can side-steps problems with installing system dependencies by using the [(mini)conda](https://docs.conda.io/en/latest/miniconda.html) package manager. 
+
+Set the CONDA_HOME environment variable to the path of your conda installation, and run the following commands:
+
+```shell
+export CONDA_HOME=/path/to/conda
+bash setup_scripts/conda_server.sh
+```
+
+This will create a conda environment with all the dependencies needed to run the model servers.
+
+You should then be able to launch models with the `text-generation-launcher` command, or by using one of the predefined MAKE rules
+```shell
+conda activate tgi-env
+make run-llama2-vicuna-7b
+```
+
+#### Setting up a Central server
+
+If you are setting this library for use in your group/cluster for the first time, you will need (or at least benefit) from setting up a central server. 
+See the instructions [in the package folder](./central/README.md).
+
+Remember to set the `TGI_CENTRAL_ADDRESS` environment variable (ideally for all the users in your cluster) to the address of the central server.
+
+#### Chat-UI
+
+It is also possible to use the [chat-ui](./clients/chat-ui) to interact with the models. 
+This is a simple fork of [HuggingFace's Chat UI](https://github.com/huggingface/chat-ui) that communicates with the central controller to get the list of models available in the cluster, and then connects to the corresponding servers to generate text.
+Check the [README](./clients/chat-ui/README.md) for more details.
+
+**Content below is from the original README.**
+---
+
 ## Table of contents
 
 - [Features](#features)
@@ -87,59 +155,6 @@ or
 
 ## Get started
 
-### *For LTI/cluster users*
-
-If you are new to this library, as it has been already being used in your cluster, we recommend by starting with a *client-only* installation.
-For example, to install the python client in a new conda environment, run:
-
-```shell
-cd clients/python
-pip install .
-```
-
-This will install the python client. You can then query the API to list the models available in your cluster, and use models for inference.
-
-```python
-from text_generation import Client
-
-# get current models
-models = Client.list_from_central()
-model_addr = models[0]["address"]
-
-client = Client(model_addr)
-print(client.generate("What is Deep Learning?", max_new_tokens=20).generated_text)
-
-text = ""
-for response in client.generate_stream("What is Deep Learning?", max_new_tokens=20):
-    if not response.token.special:
-        text += response.token.text
-print(text)
-```
-
-#### Running your own servers
-
-If you are an LTI student using one of its cluster (or generally belong to an academic cluster that doesn't have docker installed), you can side-steps problems with installing system dependencies by using the [(mini)conda](https://docs.conda.io/en/latest/miniconda.html) package manager. 
-
-Set the CONDA_HOME environment variable to the path of your conda installation, and run the following commands:
-
-```shell
-export CONDA_HOME=/path/to/conda
-bash setup_scripts/conda_server.sh
-```
-
-This will create a conda environment with all the dependencies needed to run the model servers.
-
-You should then be able to launch models with the `text-generation-launcher` command, or by using one of the predefined MAKE rules
-```shell
-conda activate tgi-env
-make run-llama2-vicuna-7b
-```
-
-#### Setting up a Central server
-
-#### Chat-UI
-
-
 ### Docker
 
 The easiest way of getting started is using the official Docker container:
@@ -175,6 +190,22 @@ curl 127.0.0.1:8080/generate_stream \
 
 or from Python:
 
+```shell
+pip install text-generation
+```
+
+```python
+from text_generation import Client
+
+client = Client("http://127.0.0.1:8080")
+print(client.generate("What is Deep Learning?", max_new_tokens=20).generated_text)
+
+text = ""
+for response in client.generate_stream("What is Deep Learning?", max_new_tokens=20):
+    if not response.token.special:
+        text += response.token.text
+print(text)
+```
 
 
 ### API documentation
