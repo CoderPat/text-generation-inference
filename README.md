@@ -37,7 +37,7 @@ If you are new to using this library, and as it has being used in your cluster, 
 To start, the `TGI_CENTRAL_ADDRESS` needs to be set, so that the client can know which servers to connect to. For example, in the LTI cluster, run
 
 ```shell
-echo "export TGI_CENTRAL_ADDRESS=tir-1-11:8765" >> ~/.bashrc
+echo "export TGI_CENTRAL_ADDRESS=tir-0-32:8765" >> ~/.bashrc
 source ~/.bashrc
 ```
 

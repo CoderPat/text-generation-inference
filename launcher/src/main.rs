@@ -1117,10 +1117,20 @@ fn main() -> Result<(), LauncherError> {
         },
     };
     let encoded_id = urlencoding::encode(&args.model_id);
+    let ip = args.hostname.to_string();
+    let hostname = match ip.parse::<std::net::SocketAddr>() {
+        Ok(ip) => ip.ip().to_string(),
+        Err(_) => {
+            tracing::warn!("invalid hostname passed! will use system's hostname...");
+            // try to resolve hostname.into_string
+            whoami::hostname()
+        }
+    };
+    println!("final hostname: {}", hostname);
     let model_record = ModelRecord {
         name: args.model_id.clone(),
         // build address string with hostnmae and port
-        address: format!("{}:{}", args.hostname, args.port),
+        address: format!("{}:{}", hostname, args.port),
         owner: whoami::username(),
         is_quantized: args.quantize.is_some()
     };

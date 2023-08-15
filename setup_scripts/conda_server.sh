@@ -85,14 +85,6 @@ rm -rf /tmp/openssl
 export LD_LIBRARY_PATH=${DIR}/.openssl/lib:$LD_LIBRARY_PATH
 export PATH=${DIR}/.openssl/bin:$PATH
 
-# install base package
-cd ${DIR}
-OPENSSL_DIR=${DIR}/.openssl \
-OPENSSL_LIB_DIR=${DIR}/.openssl/lib \
-OPENSSL_INCLUDE_DIR=${DIR}/.openssl/include \
-BUILD_EXTENSIONS=$BUILD_EXTENSIONS \
-    make install
-
 # install ninja for faster compilation of CUDA kernels and setup workdir 
 pip install ninja
 cd ${DIR}/server
@@ -110,6 +102,15 @@ if [ "$TEST_EXTRA" = true ] ; then
     python3 vllm_testscript.py
 fi
 rm -rf workdir/*
+
+# install base package
+cd ${DIR}
+OPENSSL_DIR=${DIR}/.openssl \
+OPENSSL_LIB_DIR=${DIR}/.openssl/lib \
+OPENSSL_INCLUDE_DIR=${DIR}/.openssl/include \
+BUILD_EXTENSIONS=$BUILD_EXTENSIONS \
+    make install
+
 
 # install flash attention
 cd ${DIR}/server
