@@ -108,7 +108,8 @@ and going to `localhost:8888` in your browser.
 
 Check the [README](./chat-ui/README.md) for more details.
 
-**Content below is from the original README.**
+*Content below is from the original README.*
+
 ---
 
 ## Table of contents
