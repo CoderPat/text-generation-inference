@@ -37,7 +37,7 @@ If you are new to using this library, and as it has being used in your cluster, 
 To start, the `TGI_CENTRAL_ADDRESS` needs to be set, so that the client can know which servers to connect to. For example, in the LTI cluster, run
 
 ```shell
-echo "export TGI_CENTRAL_ADDRESS=tir-0-32:8765" >> ~/.bashrc
+echo "export TGI_CENTRAL_ADDRESS=tir-0-32:8765" >> ~/.bashrc # if using a single machine, use `0.0.0.0:8765` instead
 source ~/.bashrc
 ```
 
@@ -92,7 +92,20 @@ Remember to set the `TGI_CENTRAL_ADDRESS` environment variable (ideally for all 
 
 It is also possible to use the [chat-ui](./clients/chat-ui) to interact with the models. 
 This is a simple fork of [HuggingFace's Chat UI](https://github.com/huggingface/chat-ui) that communicates with the central controller to get the list of models available in the cluster, and then connects to the corresponding servers to generate text.
-Check the [README](./clients/chat-ui/README.md) for more details.
+For example, it TIR, you can access running Chat-UI server with *port forwarding* by running
+  
+```shell
+ssh tir -L 8888:tir-0-32:4173
+```
+
+and going to `localhost:8888` in your browser.
+
+<p float="left">
+  <img src="./assets/chatui01.png" height="400" />
+  <img src="./assets/chatui02.png" height="400" />
+</p>
+
+Check the [README](./chat-ui/README.md) for more details.
 
 **Content below is from the original README.**
 ---
