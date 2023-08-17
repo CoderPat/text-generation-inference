@@ -1,18 +1,7 @@
 <div align="center">
 
-![image](https://github.com/huggingface/text-generation-inference/assets/3841370/38ba1531-ea0d-4851-b31a-a6d4ddc944b0)
-
 # LTI's **Text Generation Inference** Fork
 
-<a href="https://github.com/huggingface/text-generation-inference">
-  <img alt="GitHub Repo stars" src="https://img.shields.io/github/stars/huggingface/text-generation-inference?style=social">
-</a>
-<a href="https://github.com/huggingface/text-generation-inference/blob/main/LICENSE">
-  <img alt="License" src="https://img.shields.io/github/license/huggingface/text-generation-inference">
-</a>
-<a href="https://huggingface.github.io/text-generation-inference">
-  <img alt="Swagger API documentation" src="https://img.shields.io/badge/API-Swagger-informational">
-</a>
 </div>
 
 A Rust, Python and gRPC server for text generation inference. 
@@ -111,6 +100,8 @@ Check the [README](./chat-ui/README.md) for more details.
 *Content below is from the original README.*
 
 ---
+
+![image](https://github.com/huggingface/text-generation-inference/assets/3841370/38ba1531-ea0d-4851-b31a-a6d4ddc944b0)
 
 ## Table of contents
 
