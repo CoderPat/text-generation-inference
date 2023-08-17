@@ -28,9 +28,9 @@ This fork was created mainly due to two reasons:
 *For contributors*: If HuggingFace's upstream has a feature that you want to use, please open an issue first and discuss porting the functionality independently. 
 Do not just copy the code over, as it will be rejected.
 
-### *For LTI/cluster users*
+## *For LTI/cluster users*
 
-#### Getting started
+### Getting started
 
 If you are new to using this library, and as it has being used in your cluster, we recommend by starting with a *client-only* installation, and using models launched by other users.
 
@@ -62,7 +62,7 @@ client = Client("http://" + model_addr)
 print(client.generate("What is Deep Learning?", max_new_tokens=20).generated_text)
 ```
 
-#### Running your own servers
+### Running your own servers
 
 If you are an LTI student using one of its cluster (or generally belong to an academic cluster that doesn't have docker installed), you can side-steps problems with installing system dependencies by using the [(mini)conda](https://docs.conda.io/en/latest/miniconda.html) package manager. 
 
@@ -81,14 +81,14 @@ conda activate tgi-env
 make run-llama2-vicuna-7b
 ```
 
-#### Setting up a Central server
+### Setting up a Central server
 
 If you are setting this library for use in your group/cluster for the first time, you will need (or at least benefit) from setting up a central server. 
 See the instructions [in the package folder](./central/README.md).
 
 Remember to set the `TGI_CENTRAL_ADDRESS` environment variable (ideally for all the users in your cluster) to the address of the central server.
 
-#### Chat-UI
+### Chat-UI
 
 It is also possible to a simple web [chat-ui](./clients/chat-ui) to interact with models running in your server/cluster. 
 This is a simple fork of [HuggingFace's Chat UI](https://github.com/huggingface/chat-ui) that communicates with the central controller to get the list of models available in the cluster, and then connects to the corresponding servers to generate text.
