@@ -90,9 +90,10 @@ Remember to set the `TGI_CENTRAL_ADDRESS` environment variable (ideally for all 
 
 #### Chat-UI
 
-It is also possible to use the [chat-ui](./clients/chat-ui) to interact with the models. 
+It is also possible to a simple web [chat-ui](./clients/chat-ui) to interact with models running in your server/cluster. 
 This is a simple fork of [HuggingFace's Chat UI](https://github.com/huggingface/chat-ui) that communicates with the central controller to get the list of models available in the cluster, and then connects to the corresponding servers to generate text.
-For example, it TIR, you can access running Chat-UI server with *port forwarding* by running
+
+For example, it TIR, you can access a running Chat-UI web-server with *port forwarding* by running
   
 ```shell
 ssh tir -L 8888:tir-0-32:4173
