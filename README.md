@@ -53,11 +53,12 @@ You can then query the API to list the models available in your cluster, and use
 ```python
 from text_generation import Client
 
-# get current models
+# get current models and pick the first one
 models = Client.list_from_central()
-model_addr = models[0]["address"]
+model_name, model_addr = models[0]["name"], models[0]["address"]
+print(f"Using model {model_name} at {model_addr}")
 
-client = Client(model_addr)
+client = Client("http://" + model_addr)
 print(client.generate("What is Deep Learning?", max_new_tokens=20).generated_text)
 ```
 
