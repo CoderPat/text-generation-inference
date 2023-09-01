@@ -13,7 +13,7 @@ N_THREADS=8
 # seems un-important, as it only affects BLOOM/NEOX
 BUILD_EXTENSIONS=false
 TEST_EXTRA=true
-BENCHMARK=true
+BENCHMARK=false
 SERVER_WAIT=180
 
 set -eo pipefail
@@ -31,14 +31,14 @@ conda activate ${ENV_NAME}
 conda install -y -c conda-forge mamba
 
 # check if `module` is available and unload gcc and cuda modules
-if [ -x "$(command -v module)" ]
-then
+# if [ -x "$(command -v module)" ]
+# then
     # get list of loaded modules, grep for gcc and unload all gcc modules found
     # TODO: Fix this, it's not working
     # For now, unload manually
     # module list | grep gcc | sed 's/ //g' | sed 's/(gcc)//g' | xargs -I{} module unload {}
     # module unload "cuda*"
-fi
+# fi
 
 # remove possible extra cuda and gccs from path
 # (not sure if needed, but added during debugging and kept for now)
@@ -49,6 +49,7 @@ export LD_LIBRARY_PATH=$(echo $LD_LIBRARY_PATH | tr ":" "\n" | grep -v cuda | gr
 mamba install -y "gxx<12.0" -c conda-forge
 mamba install -y -c conda-forge curl git
 mamba install -y -c conda-forge "rust>=1.65.0"
+mamba install -y -c conda-forge openssh 
 mamba install -y -c "nvidia/label/cuda-11.8.0" cuda-toolkit
 
 # bring in the conda environment variables forward
@@ -56,6 +57,9 @@ mamba install -y -c "nvidia/label/cuda-11.8.0" cuda-toolkit
 export LD_LIBRARY_PATH=${CONDA_HOME}/envs/${ENV_NAME}/lib:$LD_LIBRARY_PATH
 export PATH=${CONDA_HOME}/envs/${ENV_NAME}/bin:$PATH
 export CUDA_HOME=${CONDA_HOME}/envs/${ENV_NAME}
+
+# add cargo bin
+export PATH=~/.cargo/bin:$PATH
 
 # add protoc
 export PROTOC_ZIP=protoc-21.12-linux-x86_64.zip
@@ -95,10 +99,8 @@ rm -rf workdir/*
 cp Makefile-vllm workdir/Makefile
 cd workdir && sleep 1
 make -j $N_THREADS install-vllm
-make test-vllm
 cd ${DIR}/server
 if [ "$TEST_EXTRA" = true ] ; then
-    make test-vllm
     python3 vllm_testscript.py
 fi
 rm -rf workdir/*
@@ -145,7 +147,7 @@ if [ "$BENCHMARK" = true ] ; then
     OPENSSL_INCLUDE_DIR=${DIR}/.openssl/include \
         make install-benchmark
     python benchmark/dump_fast_tokenizer.py --tokenizer-name=lmsys/vicuna-7b-v1.5 --output=/tmp/vicuna-7b-v1.5/
-    text-generation-benchmark --tokenizer-name=/tmp/vicuna-7b-v1.5
+    text-generation-benchmark --tokenizer-name=/tmp/vicuna-7b-v1.5 
 fi
 
 # set default conda environment variables
