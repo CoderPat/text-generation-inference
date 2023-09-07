@@ -3,7 +3,7 @@
 # It sidesteps system-wide installations by relying on conda for most packages
 # and by building openssl from source
 # TODO: only got it to work with a static build of OpenSSL, which is not ideal
-ENV_NAME=tgi-env
+ENV_NAME=tgi-env-test
 # get the directory of this script, and go one up to get the root directory
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 DIR="$(dirname "$DIR")"
@@ -25,10 +25,17 @@ then
     exit 1
 fi
 source ${CONDA_HOME}/etc/profile.d/conda.sh
-conda create -y -n ${ENV_NAME} python=3.9
-conda activate ${ENV_NAME}
 # python can't handle this dependency madness, switch to C++
 conda install -y -c conda-forge mamba
+
+mamba create -y -n ${ENV_NAME} python=3.9
+conda activate ${ENV_NAME}
+
+# remove possible extra cuda and gccs from path
+# (not sure if needed, but added during debugging and kept for now)
+# export PATH=$(echo $PATH | tr ":" "\n" | grep -v cuda | grep -v gcc | tr "\n" ":" | sed 's/:$//g')
+# export LD_LIBRARY_PATH=$(echo $LD_LIBRARY_PATH | tr ":" "\n" | grep -v cuda | grep -v gcc | tr "\n" ":" | sed 's/:$//g')
+
 
 # check if `module` is available and unload gcc and cuda modules
 # if [ -x "$(command -v module)" ]
@@ -46,7 +53,7 @@ export PATH=$(echo $PATH | tr ":" "\n" | grep -v cuda | grep -v gcc | tr "\n" ":
 export LD_LIBRARY_PATH=$(echo $LD_LIBRARY_PATH | tr ":" "\n" | grep -v cuda | grep -v gcc | tr "\n" ":" | sed 's/:$//g')
 
 # # Install dependencies
-mamba install -y "gxx<12.0" -c conda-forge
+mamba install -y -c conda-forge "gxx<12.0" 
 mamba install -y -c conda-forge curl git
 mamba install -y -c conda-forge "rust>=1.65.0"
 mamba install -y -c conda-forge openssh 

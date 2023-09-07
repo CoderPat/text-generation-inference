@@ -20,6 +20,10 @@ struct Args {
     #[clap(default_value = "60", long, env)]
     ping_interval: u64,
 
+    // The maximum number of failed pings before a model is dropped
+    #[clap(default_value = "3", long, env)]
+    max_failed_pings: u32,
+    
     // By default is None, if set pings a server on launch and if alive registers it
     #[clap(default_value = None, long, env)]
     initial_ping: Option<String>,
