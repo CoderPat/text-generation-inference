@@ -31,12 +31,6 @@ conda install -y -c conda-forge mamba
 mamba create -y -n ${ENV_NAME} python=3.9
 conda activate ${ENV_NAME}
 
-# remove possible extra cuda and gccs from path
-# (not sure if needed, but added during debugging and kept for now)
-# export PATH=$(echo $PATH | tr ":" "\n" | grep -v cuda | grep -v gcc | tr "\n" ":" | sed 's/:$//g')
-# export LD_LIBRARY_PATH=$(echo $LD_LIBRARY_PATH | tr ":" "\n" | grep -v cuda | grep -v gcc | tr "\n" ":" | sed 's/:$//g')
-
-
 # check if `module` is available and unload gcc and cuda modules
 # if [ -x "$(command -v module)" ]
 # then
@@ -49,12 +43,12 @@ conda activate ${ENV_NAME}
 
 # remove possible extra cuda and gccs from path
 # (not sure if needed, but added during debugging and kept for now)
-export PATH=$(echo $PATH | tr ":" "\n" | grep -v cuda | grep -v gcc | tr "\n" ":" | sed 's/:$//g')
-export LD_LIBRARY_PATH=$(echo $LD_LIBRARY_PATH | tr ":" "\n" | grep -v cuda | grep -v gcc | tr "\n" ":" | sed 's/:$//g')
+# export PATH=$(echo $PATH | tr ":" "\n" | grep -v cuda | grep -v gcc | tr "\n" ":" | sed 's/:$//g')
+# export LD_LIBRARY_PATH=$(echo $LD_LIBRARY_PATH | tr ":" "\n" | grep -v cuda | grep -v gcc | tr "\n" ":" | sed 's/:$//g')
 
 # # Install dependencies
-mamba install -y -c conda-forge "gxx<12.0" 
-mamba install -y -c conda-forge curl git
+mamba install -y -c conda-forge coreutils "gxx<12.0" 
+mamba install -y -c conda-forge curl git tar
 mamba install -y -c conda-forge "rust>=1.65.0"
 mamba install -y -c conda-forge openssh 
 mamba install -y -c "nvidia/label/cuda-11.8.0" cuda-toolkit
