@@ -55,12 +55,13 @@ print(client.generate("What is Deep Learning?", max_new_tokens=20).generated_tex
 
 If you are an LTI student using one of its cluster (or generally belong to an academic cluster that doesn't have docker installed), you can side-steps problems with installing system dependencies by using the [(mini)conda](https://docs.conda.io/en/latest/miniconda.html) package manager. 
 
-Set the CONDA_HOME environment variable to the path of your conda installation, and run the following commands:
+Then, run the install script:
 
 ```shell
-export CONDA_HOME=/path/to/conda
 bash setup_scripts/conda_server.sh
 ```
+
+*Note*: if you are running in a cluster with `module` installed, make sure you deactivate all modules before running the script.
 
 This will create a conda environment with all the dependencies needed to run the model servers.
 

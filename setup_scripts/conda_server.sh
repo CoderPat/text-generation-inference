@@ -3,48 +3,78 @@
 # It sidesteps system-wide installations by relying on conda for most packages
 # and by building openssl from source
 # TODO: only got it to work with a static build of OpenSSL, which is not ideal
-ENV_NAME=tgi-env-test
 # get the directory of this script, and go one up to get the root directory
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 DIR="$(dirname "$DIR")"
-N_THREADS=8
 
 # currently can only build in TIR without extensions
 # seems un-important, as it only affects BLOOM/NEOX
+ENV_NAME=tgi-env
 BUILD_EXTENSIONS=false
 TEST_EXTRA=true
 BENCHMARK=false
 SERVER_WAIT=180
+N_THREADS=8
+
+# Parse command line arguments
+while (( "$#" )); do
+  case "$1" in
+    --env-name)
+      ENV_NAME=$2
+      shift 2
+      ;;
+    --build-extensions)
+      BUILD_EXTENSIONS=true
+      shift 1
+      ;;
+    --no-tests)
+      TEST_EXTRA=false
+      shift 1
+      ;;
+    --benchmark)
+      BENCHMARK=true
+      shift 1
+      ;;
+    --server-wait)
+        SERVER_WAIT=$2
+        shift 2
+        ;;
+    --n-threads)
+        N_THREADS=$2
+        shift 2
+        ;;
+    --) # end argument parsing
+      shift
+      break
+      ;;
+    -*|--*=) # unsupported flags
+      echo "Error: Unsupported flag $1" >&2
+      exit 1
+      ;;
+    *) # preserve positional arguments
+      PARAMS="$PARAMS $1"
+      shift
+      ;;
+  esac
+done
+# set positional arguments in their proper place
+eval set -- "$PARAMS"
 
 set -eo pipefail
 
-# check if CONDA_HOME is set and create environment
-if [ -z "$CONDA_HOME" ]
+# check if CONDA_PREFIX is set and create environment
+if [ -z "$CONDA_PREFIX" ]
 then
-    echo "Please set CONDA_HOME to the location of your conda installation"
+    echo "(Mini)conda does not seem to be installed, please install it first or set CONDA_PREFIX appropriately"
     exit 1
 fi
-source ${CONDA_HOME}/etc/profile.d/conda.sh
+source ${CONDA_PREFIX}/etc/profile.d/conda.sh
 # python can't handle this dependency madness, switch to C++
 conda install -y -c conda-forge mamba
 
+echo "Creating conda environment ${ENV_NAME}..."
 mamba create -y -n ${ENV_NAME} python=3.9
 conda activate ${ENV_NAME}
-
-# check if `module` is available and unload gcc and cuda modules
-# if [ -x "$(command -v module)" ]
-# then
-    # get list of loaded modules, grep for gcc and unload all gcc modules found
-    # TODO: Fix this, it's not working
-    # For now, unload manually
-    # module list | grep gcc | sed 's/ //g' | sed 's/(gcc)//g' | xargs -I{} module unload {}
-    # module unload "cuda*"
-# fi
-
-# remove possible extra cuda and gccs from path
-# (not sure if needed, but added during debugging and kept for now)
-# export PATH=$(echo $PATH | tr ":" "\n" | grep -v cuda | grep -v gcc | tr "\n" ":" | sed 's/:$//g')
-# export LD_LIBRARY_PATH=$(echo $LD_LIBRARY_PATH | tr ":" "\n" | grep -v cuda | grep -v gcc | tr "\n" ":" | sed 's/:$//g')
 
 # # Install dependencies
 mamba install -y -c conda-forge coreutils "gxx<12.0" 
@@ -55,9 +85,9 @@ mamba install -y -c "nvidia/label/cuda-11.8.0" cuda-toolkit
 
 # bring in the conda environment variables forward
 # (not sure if needed, but added during debugging and kept for now)
-export LD_LIBRARY_PATH=${CONDA_HOME}/envs/${ENV_NAME}/lib:$LD_LIBRARY_PATH
-export PATH=${CONDA_HOME}/envs/${ENV_NAME}/bin:$PATH
-export CUDA_HOME=${CONDA_HOME}/envs/${ENV_NAME}
+export LD_LIBRARY_PATH=${CONDA_PREFIX}/envs/${ENV_NAME}/lib:$LD_LIBRARY_PATH
+export PATH=${CONDA_PREFIX}/envs/${ENV_NAME}/bin:$PATH
+export CUDA_HOME=${CONDA_PREFIX}/envs/${ENV_NAME}
 
 # add cargo bin
 export PATH=~/.cargo/bin:$PATH
