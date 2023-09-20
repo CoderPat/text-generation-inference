@@ -68,7 +68,8 @@ then
     echo "(Mini)conda does not seem to be installed, please install it first or set CONDA_PREFIX appropriately"
     exit 1
 fi
-source ${CONDA_PREFIX}/etc/profile.d/conda.sh
+export CONDA_HOME=$CONDA_PREFIX
+source ${CONDA_HOME}/etc/profile.d/conda.sh
 # python can't handle this dependency madness, switch to C++
 conda install -y -c conda-forge mamba
 
@@ -85,9 +86,9 @@ mamba install -y -c "nvidia/label/cuda-11.8.0" cuda-toolkit
 
 # bring in the conda environment variables forward
 # (not sure if needed, but added during debugging and kept for now)
-export LD_LIBRARY_PATH=${CONDA_PREFIX}/envs/${ENV_NAME}/lib:$LD_LIBRARY_PATH
-export PATH=${CONDA_PREFIX}/envs/${ENV_NAME}/bin:$PATH
-export CUDA_HOME=${CONDA_PREFIX}/envs/${ENV_NAME}
+export LD_LIBRARY_PATH=${CONDA_HOME}/envs/${ENV_NAME}/lib:$LD_LIBRARY_PATH
+export PATH=${CONDA_HOME}/envs/${ENV_NAME}/bin:$PATH
+export CUDA_HOME=${CONDA_HOME}/envs/${ENV_NAME}
 
 # add cargo bin
 export PATH=~/.cargo/bin:$PATH
