@@ -16,7 +16,6 @@ jobs:
         auto-activate-base: true
         activate-environment: ""
         auto-update-conda: true
-        python-version: 3.9
 
     - name: Run Conda Server Setup
       shell: bash -l {0}
