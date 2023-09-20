@@ -10,9 +10,9 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    # - name: Free up disk space
-    #   run: |
-    #     bash .github/workflows/free_disk_space.sh
+    - name: Free up disk space
+      run: |
+        bash .github/workflows/free_disk_space.sh
 
     - name: Set up Conda
       uses: conda-incubator/setup-miniconda@v2
@@ -22,5 +22,6 @@ jobs:
         auto-update-conda: true
 
     - name: Run Conda Server Setup
+      shell: bash -l {0}
       run: |
         bash ./setup_scripts/conda_server.sh --no-tests
