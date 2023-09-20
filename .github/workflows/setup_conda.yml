@@ -13,6 +13,8 @@ jobs:
     - name: Set up Conda
       uses: conda-incubator/setup-miniconda@v2
       with:
+        auto-activate-base: true
+        activate-environment: ""
         auto-update-conda: true
         python-version: 3.9
 
