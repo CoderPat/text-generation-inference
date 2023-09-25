@@ -11,6 +11,8 @@ DIR="$(dirname "$DIR")"
 # seems un-important, as it only affects BLOOM/NEOX
 ENV_NAME=tgi-env
 BUILD_EXTENSIONS=false
+BUILD_VLLM=true
+BUILD_FLASHATTN=true
 TEST_EXTRA=true
 BENCHMARK=false
 SERVER_WAIT=180
@@ -27,6 +29,11 @@ while (( "$#" )); do
       BUILD_EXTENSIONS=true
       shift 1
       ;;
+    --light-mode)
+      BUILD_VLLM=false
+      BUILD_FLASHATTN=false
+      shift 1
+      ;;
     --no-tests)
       TEST_EXTRA=false
       shift 1
@@ -36,13 +43,13 @@ while (( "$#" )); do
       shift 1
       ;;
     --server-wait)
-        SERVER_WAIT=$2
-        shift 2
-        ;;
+      SERVER_WAIT=$2
+      shift 2
+      ;;
     --n-threads)
-        N_THREADS=$2
-        shift 2
-        ;;
+      N_THREADS=$2
+      shift 2
+      ;;
     --) # end argument parsing
       shift
       break
@@ -125,17 +132,19 @@ export PATH=${DIR}/.openssl/bin:$PATH
 pip install ninja
 cd ${DIR}/server
 mkdir -p workdir 
+rm -rf workdir/*
 
 # install vllm
-rm -rf workdir/*
-cp Makefile-vllm workdir/Makefile
-cd workdir && sleep 1
-make -j $N_THREADS install-vllm
-cd ${DIR}/server
-if [ "$TEST_EXTRA" = true ] ; then
-    python3 vllm_testscript.py
+if [ "$BUILD_VLLM" = true ] ; then
+    cp Makefile-vllm workdir/Makefile
+    cd workdir && sleep 1
+    make -j $N_THREADS install-vllm
+    cd ${DIR}/server
+    if [ "$TEST_EXTRA" = true ] ; then
+        python3 vllm_testscript.py
+    fi
+    rm -rf workdir/*
 fi
-rm -rf workdir/*
 
 # install base package
 cd ${DIR}
@@ -147,14 +156,17 @@ BUILD_EXTENSIONS=$BUILD_EXTENSIONS \
 
 
 # install flash attention
-cd ${DIR}/server
-cp Makefile-flash-att workdir/Makefile
-cd workdir && sleep 1
-make -j $N_THREADS install-flash-attention
-if [ "$TEST_EXTRA" = true ] ; then
-    make test-flash-attention
+if [ "$BUILD_FLASHATTN" = true ] ; then
+    cd ${DIR}/server
+    cp Makefile-flash-att workdir/Makefile
+    cd workdir && sleep 1
+    make -j $N_THREADS install-flash-attention
+    if [ "$TEST_EXTRA" = true ] ; then
+        make test-flash-attention
+    fi
+    cd ${DIR}/server
 fi
-cd ${DIR}/server
+
 rm -rf workdir
 
 # override protobuf

@@ -24,4 +24,4 @@ jobs:
     - name: Run Conda Server Setup
       shell: bash -l {0}
       run: |
-        bash ./setup_scripts/conda_server.sh --no-tests
+        bash ./setup_scripts/conda_server.sh --light-mode --no-tests
