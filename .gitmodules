@@ -1,0 +1,3 @@
+[submodule "chat-ui"]
+	path = chat-ui
+	url = git@github.com:CoderPat/chat-ui.git

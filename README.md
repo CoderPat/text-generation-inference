@@ -1,22 +1,108 @@
 <div align="center">
 
-![image](https://github.com/huggingface/text-generation-inference/assets/3841370/38ba1531-ea0d-4851-b31a-a6d4ddc944b0)
+# LTI's **Text Generation Inference** Fork
 
-# Text Generation Inference
-
-<a href="https://github.com/huggingface/text-generation-inference">
-  <img alt="GitHub Repo stars" src="https://img.shields.io/github/stars/huggingface/text-generation-inference?style=social">
-</a>
-<a href="https://github.com/huggingface/text-generation-inference/blob/main/LICENSE">
-  <img alt="License" src="https://img.shields.io/github/license/huggingface/text-generation-inference">
-</a>
-<a href="https://huggingface.github.io/text-generation-inference">
-  <img alt="Swagger API documentation" src="https://img.shields.io/badge/API-Swagger-informational">
-</a>
 </div>
 
-A Rust, Python and gRPC server for text generation inference. Used in production at [HuggingFace](https://huggingface.co)
-to power LLMs api-inference widgets.
+A Rust, Python and gRPC server for text generation inference. 
+
+Forked from [HuggingFace](https://huggingface.co)'s [Text Generation Inference](https://github.com/huggingface/text-generation-inference/) project (prior to its re-licensing), it's commercial-friendly and licensed under the Apache 2.0.
+
+## *A note on this fork*
+
+This fork was created mainly due to two reasons: 
+1. Primarily, it allows us faster iteration and more flexibility, which is essential for our research uses. It also allows more control over development and documentation, crucial for our in-house uses at CMU.
+2. While we understand the reasons behind the re-licensing, we don't want our (research) contributions to be locked behind a restrictive license. This fork will not sync with the upstream repository, and will be updated independently. 
+
+*For contributors*: If HuggingFace's upstream has a feature that you want to use, please open an issue first and discuss porting the functionality independently. 
+Do not just copy the code over, as it will be rejected.
+
+## *For LTI/cluster users*
+
+### Getting started
+
+If you are new to using this library, and as it has being used in your cluster, we recommend by starting with a *client-only* installation, and using models launched by other users.
+
+To start, the `TGI_CENTRAL_ADDRESS` needs to be set, so that the client can know which servers to connect to. For example, in the LTI cluster, run
+
+```shell
+echo "export TGI_CENTRAL_ADDRESS=tir-0-32:8765" >> ~/.bashrc # if using a single machine, use `0.0.0.0:8765` instead
+source ~/.bashrc
+```
+
+To use the python client, install it with
+
+```shell
+cd clients/python
+pip install .
+```
+
+You can then query the API to list the models available in your cluster, and use models for inference.
+
+```python
+from text_generation import Client
+
+# get current models and pick the first one
+models = Client.list_from_central()
+model_name, model_addr = models[0]["name"], models[0]["address"]
+print(f"Using model {model_name} at {model_addr}")
+
+client = Client("http://" + model_addr)
+print(client.generate("What is Deep Learning?", max_new_tokens=20).generated_text)
+```
+
+### Running your own servers
+
+If you are an LTI student using one of its cluster (or generally belong to an academic cluster that doesn't have docker installed), you can side-steps problems with installing system dependencies by using the [(mini)conda](https://docs.conda.io/en/latest/miniconda.html) package manager. 
+
+Then, ***from your base environment***, run the install script:
+
+```shell
+bash setup_scripts/conda_server.sh
+```
+
+*Note*: if you are running in a cluster with `module` installed, make sure you deactivate all modules before running the script.
+
+This will create a conda environment with all the dependencies needed to run the model servers.
+
+You should then be able to launch models with the `text-generation-launcher` command, or by using one of the predefined MAKE rules
+```shell
+conda activate tgi-env
+make run-llama2-vicuna-7b
+```
+
+### Setting up a Central server
+
+If you are setting this library for use in your group/cluster for the first time, you will need (or at least benefit) from setting up a central server. 
+See the instructions [in the package folder](./central/README.md).
+
+Remember to set the `TGI_CENTRAL_ADDRESS` environment variable (ideally for all the users in your cluster) to the address of the central server.
+
+### Chat-UI
+
+It is also possible to a simple web [chat-ui](./clients/chat-ui) to interact with models running in your server/cluster. 
+This is a simple fork of [HuggingFace's Chat UI](https://github.com/huggingface/chat-ui) that communicates with the central controller to get the list of models available in the cluster, and then connects to the corresponding servers to generate text.
+
+For example, it TIR, you can access a running Chat-UI web-server with *port forwarding* by running
+  
+```shell
+ssh tir -L 8888:tir-0-32:4173
+```
+
+and going to `localhost:8888` in your browser.
+
+<p float="left">
+  <img src="./assets/chatui01.png" height="400" />
+  <img src="./assets/chatui02.png" height="400" />
+</p>
+
+Check the [README](./chat-ui/README.md) for more details.
+
+*Content below is from the original README.*
+
+---
+
+![image](https://github.com/huggingface/text-generation-inference/assets/3841370/38ba1531-ea0d-4851-b31a-a6d4ddc944b0)
 
 ## Table of contents
 
@@ -128,6 +214,7 @@ for response in client.generate_stream("What is Deep Learning?", max_new_tokens=
         text += response.token.text
 print(text)
 ```
+
 
 ### API documentation
 

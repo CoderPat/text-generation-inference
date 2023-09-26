@@ -1,5 +1,4 @@
 include Makefile-flash-att
-include Makefile-flash-att-v2
 include Makefile-vllm
 
 unit-tests:

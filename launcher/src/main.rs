@@ -16,6 +16,8 @@ use std::thread::sleep;
 use std::time::{Duration, Instant};
 use std::{fs, io};
 use tracing_subscriber::EnvFilter;
+use serde::Serialize;
+use serde_json::json;
 
 mod env_runtime;
 
@@ -24,6 +26,15 @@ enum Quantization {
     Bitsandbytes,
     Gptq,
 }
+
+#[derive(Serialize)]
+struct ModelRecord {
+    name: String,
+    address: String,
+    owner: String,
+    is_quantized: bool,
+}
+
 
 impl std::fmt::Display for Quantization {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -275,6 +286,10 @@ struct Args {
     /// ngrok edge
     #[clap(long, env)]
     ngrok_edge: Option<String>,
+
+    /// Central address, used to register the server in the central registry
+    #[clap(long, env)]
+    central_address: Option<String>,
 
     /// Display a lot of information about your runtime environment
     #[clap(long, short, action)]
@@ -1083,11 +1098,6 @@ fn main() -> Result<(), LauncherError> {
     // Download and convert model weights
     download_convert_model(&args, running.clone())?;
 
-    if !running.load(Ordering::SeqCst) {
-        // Launcher was asked to stop
-        return Ok(());
-    }
-
     // Shared shutdown bool
     let shutdown = Arc::new(AtomicBool::new(false));
     // Shared shutdown channel
@@ -1096,6 +1106,34 @@ fn main() -> Result<(), LauncherError> {
 
     // Shared channel to track shard status
     let (status_sender, status_receiver) = mpsc::channel();
+
+    // clone args to avoid borrowing issues
+    // if central_address is None, check if enviroment variable is set
+    let central_address = match args.central_address.clone() {
+        Some(central_address) => Some(central_address),
+        None => match env::var("TGI_CENTRAL_ADDRESS") {
+            Ok(central_address) => Some(central_address),
+            Err(_) => None,
+        },
+    };
+    let encoded_id = urlencoding::encode(&args.model_id);
+    let ip = args.hostname.to_string();
+    let hostname = match ip.parse::<std::net::SocketAddr>() {
+        Ok(ip) => ip.ip().to_string(),
+        Err(_) => {
+            tracing::warn!("invalid hostname passed! will use system's hostname...");
+            // try to resolve hostname.into_string
+            whoami::hostname()
+        }
+    };
+    println!("final hostname: {}", hostname);
+    let model_record = ModelRecord {
+        name: args.model_id.clone(),
+        // build address string with hostnmae and port
+        address: format!("{}:{}", hostname, args.port),
+        owner: whoami::username(),
+        is_quantized: args.quantize.is_some()
+    };
 
     spawn_shards(
         num_shard,
@@ -1122,6 +1160,37 @@ fn main() -> Result<(), LauncherError> {
 
     // Default exit code
     let mut exit_code = Ok(());
+
+    // Ping central server to register model, using request
+    if let Some(central_address) = central_address {
+        println!("Attempting to register in Central at {}", central_address);
+        let url = format!("http://{}/model_up/{}", central_address, encoded_id.to_string());
+        let client = reqwest::blocking::Client::new();
+        let res = client
+            .post(&url)
+            .json(&model_record)
+            .send();
+
+        match res {
+            Ok(response) => {
+                if response.status().is_success() {
+                    println!("Successfully registered on central server");
+                } else {
+                    println!("Failed to register on central server");
+                    // response
+                    println!("Response: {:?}", response);
+                }
+            },
+            Err(e) => println!("Error occurred while initiating connection with central server: {}", e)
+        }
+    } else {
+        println!("No central server address provided. Skipping registration");
+    }
+
+    if !running.load(Ordering::SeqCst) {
+        // Launcher was asked to stop
+        return Ok(());
+    }
 
     while running.load(Ordering::SeqCst) {
         if let Ok(ShardStatus::Failed(rank)) = status_receiver.try_recv() {

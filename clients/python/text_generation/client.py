@@ -1,5 +1,6 @@
 import json
 import requests
+import os
 
 from aiohttp import ClientSession, ClientTimeout
 from pydantic import ValidationError
@@ -34,6 +35,36 @@ class Client:
     ' Rayleigh scattering'
      ```
     """
+
+    @classmethod
+    def list_from_central(
+        cls,
+        central_url: str = None,
+    ):
+        """
+        Get the list of available models from the central model hub
+
+        Args:
+            central_url (`str`):
+                Text Generation Central URL
+
+        Returns:
+            List[Dict[str, str]]: List of available models
+        """
+        if central_url is None:
+            #  check if environment variable is set
+            if os.environ.get("TGI_CENTRAL_ADDRESS") is None:
+                raise ValueError(
+                    "No Central url provided and TGI_CENTRAL_ADDRESS environment variable is not set"
+                )
+            central_url = f"http://{os.environ.get('TGI_CENTRAL_ADDRESS')}"
+            
+        # query from /models endpoint
+        resp = requests.get(f"{central_url}/list_models")
+        payload = resp.json()
+        if resp.status_code != 200:
+            raise parse_error(resp.status_code, payload)
+        return payload
 
     def __init__(
         self,

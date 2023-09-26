@@ -4,14 +4,15 @@ members = [
     "router",
     "router/client",
     "router/grpc-metadata",
+    "central",
     "launcher"
 ]
 
 [workspace.package]
-version = "0.9.4"
+version = "0.9.5"
 edition = "2021"
-authors = ["Olivier Dehaene"]
-homepage = "https://github.com/huggingface/text-generation-inference"
+authors = ["Patrick Fernandes"]
+homepage = "https://github.com/coderpat/text-generation-inference"
 
 [profile.release]
 debug = 1

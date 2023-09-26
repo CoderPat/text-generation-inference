@@ -1,4 +1,5 @@
 .idea
 target
 router/tokenizer.json
+.openssl
 *__pycache__*

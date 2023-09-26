@@ -30,8 +30,8 @@ from typing import Optional, List, Tuple
 import dropout_layer_norm
 
 # vllm imports
-import vllm_cache_ops
-import vllm_attention_ops
+import vllm.cache_ops
+import vllm.attention_ops
 
 from text_generation_server.utils.flash_attn import attention
 from text_generation_server.utils.layers import (
@@ -185,10 +185,12 @@ class FlashLlamaAttention(torch.nn.Module):
         self.hidden_size = config.hidden_size
         self.head_size = self.hidden_size // self.num_heads
 
-        self.rotary_emb = PositionRotaryEmbedding.load(
-            prefix=f"{prefix}.rotary_emb", weights=weights
+        self.rotary_emb = PositionRotaryEmbedding.static(
+            config=config, 
+            dim=self.head_size, 
+            base=10000.0, 
+            device=weights.device
         )
-
         self.softmax_scale = self.head_size**-0.5
 
         if self.num_heads % weights.process_group.size() != 0:
@@ -247,7 +249,7 @@ class FlashLlamaAttention(torch.nn.Module):
         self.rotary_emb(query, cos, sin)
         self.rotary_emb(torch.select(kv, dim=1, index=0), cos, sin)
 
-        vllm_cache_ops.reshape_and_cache(
+        vllm.cache_ops.reshape_and_cache(
             kv[:, 0], kv[:, 1], kv_cache[0], kv_cache[1], slots
         )
 
@@ -270,7 +272,7 @@ class FlashLlamaAttention(torch.nn.Module):
         else:
             # kv_cache[1] => [num_blocks, num_heads, head_size, block_size]
             block_size = kv_cache[1].shape[3]
-            vllm_attention_ops.single_query_cached_kv_attention(
+            vllm.attention_ops.single_query_cached_kv_attention(
                 attn_output,
                 query,
                 kv_cache[0],
@@ -281,6 +283,7 @@ class FlashLlamaAttention(torch.nn.Module):
                 input_lengths,
                 block_size,
                 max_s,
+                None
             )
 
         return self.o_proj(attn_output.view(-1, self.num_heads * self.head_size))
@@ -383,6 +386,7 @@ class FlashLlamaLayer(nn.Module):
 class FlashLlamaModel(torch.nn.Module):
     def __init__(self, config, weights):
         super().__init__()
+        self.config = config
 
         process_group = weights.process_group
         self.tp_rank = process_group.rank()

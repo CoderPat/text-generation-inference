@@ -28,8 +28,8 @@ from transformers.models.gpt_neox import GPTNeoXConfig
 from typing import Optional, List, Tuple
 
 # vllm imports
-import vllm_cache_ops
-import vllm_attention_ops
+import vllm.cache_ops
+import vllm.attention_ops
 
 from text_generation_server.utils.flash_attn import attention
 from text_generation_server.utils.layers import (
@@ -141,7 +141,7 @@ class FlashNeoxAttention(torch.nn.Module):
         self.rotary_emb(qkv[:, 0], cos, sin)
         self.rotary_emb(qkv[:, 1], cos, sin)
 
-        vllm_cache_ops.reshape_and_cache(
+        vllm.cache_ops.reshape_and_cache(
             qkv[:, 1], qkv[:, 2], kv_cache[0], kv_cache[1], slots
         )
 
@@ -164,7 +164,7 @@ class FlashNeoxAttention(torch.nn.Module):
         else:
             # kv_cache[1] => [num_blocks, num_heads, head_size, block_size]
             block_size = kv_cache[1].shape[3]
-            vllm_attention_ops.single_query_cached_kv_attention(
+            vllm.attention_ops.single_query_cached_kv_attention(
                 attn_output,
                 qkv[:, 0],
                 kv_cache[0],
