@@ -16,7 +16,7 @@ BUILD_FLASHATTN=true
 TEST_EXTRA=true
 BENCHMARK=false
 SERVER_WAIT=180
-N_THREADS=8
+N_THREADS=4
 
 # Parse command line arguments
 while (( "$#" )); do
@@ -77,8 +77,11 @@ then
 fi
 export CONDA_HOME=$CONDA_PREFIX
 source ${CONDA_HOME}/etc/profile.d/conda.sh
+
 # python can't handle this dependency madness, switch to C++
 conda install -y -c conda-forge mamba
+# we need to add the base path to get mamba to work inside the new environment
+export PATH=${CONDA_HOME}/bin:$PATH
 
 echo "Creating conda environment ${ENV_NAME}..."
 mamba create -y -n ${ENV_NAME} python=3.9
@@ -90,6 +93,8 @@ mamba install -y -c conda-forge curl git tar
 mamba install -y -c conda-forge "rust>=1.65.0"
 mamba install -y -c conda-forge openssh 
 mamba install -y -c "nvidia/label/cuda-11.8.0" cuda-toolkit
+# pin pytorch due to some cuda-issue in pytorch==2.1.0 / something with vllm
+mamba install -y -c pytorch -c nvidia pytorch==2.0.1 torchvision==0.15.2 torchaudio==2.0.2 pytorch-cuda=11.8 
 
 # bring in the conda environment variables forward
 # (not sure if needed, but added during debugging and kept for now)
@@ -130,6 +135,8 @@ export PATH=${DIR}/.openssl/bin:$PATH
 
 # install ninja for faster compilation of CUDA kernels and setup workdir 
 pip install ninja
+# export MAX_JOBS to limit ninjas parallelism
+export MAX_JOBS=$N_THREADS
 cd ${DIR}/server
 mkdir -p workdir 
 rm -rf workdir/*
@@ -138,7 +145,8 @@ rm -rf workdir/*
 if [ "$BUILD_VLLM" = true ] ; then
     cp Makefile-vllm workdir/Makefile
     cd workdir && sleep 1
-    make -j $N_THREADS install-vllm
+    make install-vllm
+    
     cd ${DIR}/server
     if [ "$TEST_EXTRA" = true ] ; then
         python3 vllm_testscript.py
@@ -160,7 +168,7 @@ if [ "$BUILD_FLASHATTN" = true ] ; then
     cd ${DIR}/server
     cp Makefile-flash-att workdir/Makefile
     cd workdir && sleep 1
-    make -j $N_THREADS install-flash-attention
+    make install-flash-attention
     if [ "$TEST_EXTRA" = true ] ; then
         make test-flash-attention
     fi

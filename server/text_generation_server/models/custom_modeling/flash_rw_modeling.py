@@ -214,7 +214,7 @@ class FlashRWAttention(torch.nn.Module):
         else:
             # kv_cache[1] => [num_blocks, num_heads_kv, head_size, block_size]
             block_size = kv_cache[1].shape[3]
-            vllm.attention_ops.single_query_cached_kv_attention(
+            vllm.attention_ops.paged_attention_v1(
                 attn_output,
                 query,
                 kv_cache[0],
@@ -334,7 +334,7 @@ class FlashRWLargeAttention(torch.nn.Module):
         else:
             # kv_cache[1] => [num_blocks, num_groups, head_size, block_size]
             block_size = kv_cache[1].shape[3]
-            vllm.attention_ops.single_query_cached_kv_attention(
+            vllm.attention_ops.paged_attention_v1(
                 attn_output,
                 query,
                 kv_cache[0],
