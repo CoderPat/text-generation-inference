@@ -61,6 +61,8 @@ Then, ***from your base environment***, run the install script:
 bash setup_scripts/conda_server.sh
 ```
 
+*Note*: This **takes a really long time**, up to 1.5-3 hour, sit back and realx while you wait for it.
+
 *Note*: if you are running in a cluster with `module` installed, make sure you deactivate all modules before running the script.
 
 This will create a conda environment with all the dependencies needed to run the model servers.
