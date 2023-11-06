@@ -72,6 +72,24 @@ class PrefillTokens:
 
 
 @dataclass
+class TopTokens:
+    token_ids: List[int]
+    logprobs: List[float]
+    texts: List[str]
+    is_special: List[bool]
+
+    def to_pb(self) -> generate_pb2.TopTokens:
+        return generate_pb2.TopTokens(
+            ids=self.token_ids,
+            logprobs=self.logprobs,
+            texts=self.texts,
+            is_special=self.is_special,
+        )
+
+    def __len__(self):
+        return len(self.token_ids)
+    
+@dataclass
 class Generation:
     request_id: int
     prefill_tokens: Optional[PrefillTokens]
@@ -80,6 +98,8 @@ class Generation:
     token_text: str
     token_is_special: bool
     generated_text: Optional[GeneratedText]
+    # Optional for now, since it's not yet supported for every model.
+    top_tokens: Optional[TopTokens]
 
     def to_pb(self) -> generate_pb2.Generation:
         return generate_pb2.Generation(
@@ -94,4 +114,5 @@ class Generation:
             generated_text=self.generated_text.to_pb()
             if self.generated_text is not None
             else None,
+            top_tokens=self.top_tokens.to_pb() if self.top_tokens is not None else None,
         )

@@ -33,6 +33,8 @@ class Parameters(BaseModel):
     typical_p: Optional[float]
     # Generate best_of sequences and return the one if the highest token logprobs
     best_of: Optional[int]
+    # Return the `top_tokens` most likely tokens at each step
+    top_tokens: Optional[int]
     # Watermarking with [A Watermark for Large Language Models](https://arxiv.org/abs/2301.10226)
     watermark: bool = False
     # Get generation details
@@ -100,6 +102,13 @@ class Parameters(BaseModel):
         if v is not None and (v <= 0 or v >= 1.0):
             raise ValidationError("`typical_p` must be > 0.0 and < 1.0")
         return v
+    
+    @validator("top_tokens")
+    def valid_top_tokens(cls, v):
+        if v is not None and v <= 0:
+            raise ValidationError("`top_tokens` must be strictly positive")
+        return v
+
 
 
 class Request(BaseModel):
@@ -193,6 +202,8 @@ class Details(BaseModel):
     prefill: List[InputToken]
     # Generated tokens
     tokens: List[Token]
+    # Most likely tokens at each step
+    top_tokens: Optional[List[List[Token]]]
     # Additional sequences when using the `best_of` parameter
     best_of_sequences: Optional[List[BestOfSequence]]
 
@@ -219,6 +230,8 @@ class StreamDetails(BaseModel):
 class StreamResponse(BaseModel):
     # Generated token
     token: Token
+    # Most likely tokens at each step
+    top_tokens: Optional[List[Token]]
     # Complete generated text
     # Only available when the generation is finished
     generated_text: Optional[str]

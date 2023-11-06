@@ -161,20 +161,24 @@ def download_weights(
             for p in local_pt_files
         ]
         try:
-            from transformers import AutoConfig
             import transformers
+            import json
+            from huggingface_hub import hf_hub_download
 
-            config = AutoConfig.from_pretrained(
-                model_id,
-                revision=revision,
-            )
-            architecture = config.architectures[0]
+            logger.info(f"is_local_model: {is_local_model}")
+            if is_local_model:
+                config_filename = os.path.join(model_id, "config.json")
+            else:
+                config_filename = hf_hub_download(model_id, revision=revision, filename="config.json")
+
+            with open(config_filename, "r") as f:
+                config = json.load(f)
+            architecture = config["architectures"][0]
 
             class_ = getattr(transformers, architecture)
 
             # Name for this varible depends on transformers version.
             discard_names = getattr(class_, "_tied_weights_keys", [])
-            discard_names.extend(getattr(class_, "_keys_to_ignore_on_load_missing", []))
 
         except Exception as e:
             discard_names = []
