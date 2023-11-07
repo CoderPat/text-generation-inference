@@ -14,6 +14,7 @@ use tracing::{instrument, Span};
 pub struct Validation {
     /// Validation parameters
     max_best_of: usize,
+    max_top_tokens: u32,
     max_stop_sequences: usize,
     max_input_length: usize,
     max_total_tokens: usize,
@@ -26,6 +27,7 @@ impl Validation {
         workers: usize,
         tokenizer: Option<Tokenizer>,
         max_best_of: usize,
+        max_top_tokens: u32,
         max_stop_sequences: usize,
         max_input_length: usize,
         max_total_tokens: usize,
@@ -53,6 +55,7 @@ impl Validation {
         Self {
             max_best_of,
             sender,
+            max_top_tokens,
             max_stop_sequences,
             max_input_length,
             max_total_tokens,
@@ -130,6 +133,7 @@ impl Validation {
     ) -> Result<ValidGenerateRequest, ValidationError> {
         let GenerateParameters {
             best_of,
+            top_tokens,
             temperature,
             repetition_penalty,
             top_k,
@@ -218,6 +222,15 @@ impl Validation {
             }
         };
 
+        let top_tokens = top_tokens
+            .map(|value| {
+                if value > self.max_top_tokens {
+                    return Err(ValidationError::TopTokens(self.max_top_tokens, value));
+                }
+                Ok(value)
+            })
+            .unwrap_or(Ok(0))?;
+
         // Check if inputs is empty
         if request.inputs.is_empty() {
             return Err(EmptyInput);
@@ -263,6 +276,7 @@ impl Validation {
             truncate: truncate.unwrap_or(self.max_input_length) as u32,
             parameters,
             stopping_parameters,
+            top_tokens: top_tokens,
         })
     }
 
@@ -336,6 +350,7 @@ pub(crate) struct ValidGenerateRequest {
     pub decoder_input_details: bool,
     pub parameters: NextTokenChooserParameters,
     pub stopping_parameters: StoppingCriteriaParameters,
+    pub top_tokens: u32,
 }
 
 #[derive(Error, Debug)]
@@ -344,6 +359,10 @@ pub enum ValidationError {
     BestOf(usize, usize),
     #[error("`best_of` != 1 is not allowed for this endpoint")]
     BestOfDisabled,
+    #[error("`top_tokens` must be >= 0 and <= {0}. Given: {1}")]
+    TopTokens(u32, u32),
+    #[error("`top_tokens` != 0 is not allowed for this endpoint")]
+    TopTokensDisabled,
     #[error("you must use sampling when `best_of` is > 1")]
     BestOfSampling,
     #[error("`seed` must not be set when `best_of` > 1")]
@@ -390,14 +409,16 @@ mod tests {
     async fn test_validation_max_new_tokens() {
         let tokenizer = None;
         let max_best_of = 2;
-        let max_stop_sequence = 3;
-        let max_input_length = 4;
-        let max_total_tokens = 5;
+        let max_top_tokens = 3;
+        let max_stop_sequence = 4;
+        let max_input_length = 5;
+        let max_total_tokens = 6;
         let workers = 1;
         let validation = Validation::new(
             workers,
             tokenizer,
             max_best_of,
+            max_top_tokens,
             max_stop_sequence,
             max_input_length,
             max_total_tokens,
@@ -417,9 +438,10 @@ mod tests {
     async fn test_validation_input_length() {
         let tokenizer = Some(get_tokenizer().await);
         let max_best_of = 2;
-        let max_stop_sequence = 3;
-        let max_input_length = 4;
-        let max_total_tokens = 5;
+        let max_tokens = 3;
+        let max_stop_sequence = 4;
+        let max_input_length = 5;
+        let max_total_tokens = 6;
         let workers = 1;
         let validation = Validation::new(
             workers,
@@ -435,7 +457,7 @@ mod tests {
             .validate_input("Hello".to_string(), None, max_new_tokens)
             .await
         {
-            Err(ValidationError::MaxTotalTokens(5, 1, 10)) => (),
+            Err(ValidationError::MaxTotalTokens(6, 1, 10)) => (),
             _ => panic!("Unexpected not max new tokens"),
         }
     }

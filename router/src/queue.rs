@@ -235,6 +235,7 @@ impl State {
                 truncate: entry.request.truncate,
                 parameters: Some(entry.request.parameters.clone()),
                 stopping_parameters: Some(entry.request.stopping_parameters.clone()),
+                top_tokens: entry.request.top_tokens,
             });
             // Set batch_time
             entry.batch_time = Some(Instant::now());
@@ -323,6 +324,7 @@ mod tests {
                     repetition_penalty: 0.0,
                     watermark: false,
                 },
+                top_tokens: 0,
                 stopping_parameters: StoppingCriteriaParameters {
                     ignore_eos_token: false,
                     max_new_tokens: 1,

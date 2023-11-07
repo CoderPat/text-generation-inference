@@ -51,6 +51,19 @@ client = Client("http://" + model_addr)
 print(client.generate("What is Deep Learning?", max_new_tokens=20).generated_text)
 ```
 
+#### Updating the environment
+
+In general, you don't have to recreate the environment every time you want to update the library. 
+To just update the library, run in the base directory (in a previously created environment)
+
+```shell
+OPENSSL_DIR=.openssl \
+OPENSSL_LIB_DIR=.openssl/lib \
+OPENSSL_INCLUDE_DIR=.openssl/include \
+BUILD_EXTENSIONS=false  \
+    make install 
+```
+
 ### Running your own servers
 
 If you are an LTI student using one of its cluster (or generally belong to an academic cluster that doesn't have docker installed), you can side-steps problems with installing system dependencies by using the [(mini)conda](https://docs.conda.io/en/latest/miniconda.html) package manager. 

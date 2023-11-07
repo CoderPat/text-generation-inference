@@ -133,6 +133,12 @@ struct Args {
     #[clap(default_value = "2", long, env)]
     max_best_of: usize,
 
+    // This is the maximum allowed value for clients to set `top_tokens`.
+    // It is used to return the `top_tokens` most likely tokens at each generation
+    // rather than just the top one.
+    #[clap(default_value = "10", long, env)]
+    max_top_tokens: u32,
+
     /// This is the maximum allowed value for clients to set `stop_sequences`.
     /// Stop sequences are used to allow the model to stop on more than just
     /// the EOS token, and enable more complex "prompting" where users can preprompt
@@ -867,6 +873,8 @@ fn spawn_webserver(
         args.max_concurrent_requests.to_string(),
         "--max-best-of".to_string(),
         args.max_best_of.to_string(),
+        "--max-top-tokens".to_string(),
+        args.max_top_tokens.to_string(),
         "--max-stop-sequences".to_string(),
         args.max_stop_sequences.to_string(),
         "--max-input-length".to_string(),

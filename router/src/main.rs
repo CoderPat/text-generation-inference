@@ -27,6 +27,8 @@ struct Args {
     max_concurrent_requests: usize,
     #[clap(default_value = "2", long, env)]
     max_best_of: usize,
+    #[clap(default_value = "10", long, env)]
+    max_top_tokens: u32,
     #[clap(default_value = "4", long, env)]
     max_stop_sequences: usize,
     #[clap(default_value = "1024", long, env)]
@@ -74,6 +76,7 @@ fn main() -> Result<(), RouterError> {
     let Args {
         max_concurrent_requests,
         max_best_of,
+        max_top_tokens,
         max_stop_sequences,
         max_input_length,
         max_total_tokens,
@@ -258,6 +261,7 @@ fn main() -> Result<(), RouterError> {
                 compat_return_full_text,
                 max_concurrent_requests,
                 max_best_of,
+                max_top_tokens,
                 max_stop_sequences,
                 max_input_length,
                 max_total_tokens,

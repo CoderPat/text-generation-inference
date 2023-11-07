@@ -106,6 +106,7 @@ class Client:
         typical_p: Optional[float] = None,
         watermark: bool = False,
         decoder_input_details: bool = False,
+        top_tokens: Optional[int] = None,
     ) -> Response:
         """
         Given a prompt, generate the following text
@@ -144,6 +145,8 @@ class Client:
                 Watermarking with [A Watermark for Large Language Models](https://arxiv.org/abs/2301.10226)
             decoder_input_details (`bool`):
                 Return the decoder input token logprobs and ids
+            top_tokens (`Optional[int]`):
+                Return the top `top_tokens` tokens with the highest logprobs at each step
 
         Returns:
             Response: generated response
@@ -165,6 +168,7 @@ class Client:
             typical_p=typical_p,
             watermark=watermark,
             decoder_input_details=decoder_input_details,
+            top_tokens=top_tokens,
         )
         request = Request(inputs=prompt, stream=False, parameters=parameters)
 
@@ -179,6 +183,25 @@ class Client:
         if resp.status_code != 200:
             raise parse_error(resp.status_code, payload)
         return Response(**payload[0])
+    
+    def score(
+        self: str,
+        target: str,
+    ):
+        """ Utility function to score a target string (i.e. compute its logprob).
+
+        Mostly wraps the generate function, asking for 1 new token and returning
+        the logprob of the prompt.
+        """ 
+        # Use generate to get the score
+        resp = self.generate(
+            prompt=target,
+            do_sample=False,
+            max_new_tokens=1,
+            decoder_input_details=True,
+        )
+        # extract prefill details and cut off first
+        return resp.details.prefill[1:]
 
     def generate_stream(
         self,
@@ -195,6 +218,7 @@ class Client:
         truncate: Optional[int] = None,
         typical_p: Optional[float] = None,
         watermark: bool = False,
+        top_tokens: Optional[int] = None,
     ) -> Iterator[StreamResponse]:
         """
         Given a prompt, generate the following stream of tokens
@@ -229,6 +253,8 @@ class Client:
                 See [Typical Decoding for Natural Language Generation](https://arxiv.org/abs/2202.00666) for more information
             watermark (`bool`):
                 Watermarking with [A Watermark for Large Language Models](https://arxiv.org/abs/2301.10226)
+            top_tokens (`Optional[int]`):
+                Return the top `top_tokens` tokens with the highest logprobs at each step
 
         Returns:
             Iterator[StreamResponse]: stream of generated tokens
@@ -250,6 +276,7 @@ class Client:
             truncate=truncate,
             typical_p=typical_p,
             watermark=watermark,
+            top_tokens=top_tokens,
         )
         request = Request(inputs=prompt, stream=True, parameters=parameters)
 
@@ -348,6 +375,7 @@ class AsyncClient:
         typical_p: Optional[float] = None,
         watermark: bool = False,
         decoder_input_details: bool = False,
+        top_tokens: Optional[int] = None,
     ) -> Response:
         """
         Given a prompt, generate the following text asynchronously
@@ -386,6 +414,8 @@ class AsyncClient:
                 Watermarking with [A Watermark for Large Language Models](https://arxiv.org/abs/2301.10226)
             decoder_input_details (`bool`):
                 Return the decoder input token logprobs and ids
+            top_tokens (`Optional[int]`):
+                Return the top `top_tokens` tokens with the highest logprobs at each step
 
         Returns:
             Response: generated response
@@ -435,6 +465,8 @@ class AsyncClient:
         truncate: Optional[int] = None,
         typical_p: Optional[float] = None,
         watermark: bool = False,
+        top_tokens: Optional[int] = None,
+
     ) -> AsyncIterator[StreamResponse]:
         """
         Given a prompt, generate the following stream of tokens asynchronously
@@ -469,6 +501,8 @@ class AsyncClient:
                 See [Typical Decoding for Natural Language Generation](https://arxiv.org/abs/2202.00666) for more information
             watermark (`bool`):
                 Watermarking with [A Watermark for Large Language Models](https://arxiv.org/abs/2301.10226)
+            top_tokens (`Optional[int]`):
+                Return the top `top_tokens` tokens with the highest logprobs at each step
 
         Returns:
             AsyncIterator[StreamResponse]: stream of generated tokens
@@ -490,6 +524,7 @@ class AsyncClient:
             truncate=truncate,
             typical_p=typical_p,
             watermark=watermark,
+            top_tokens=top_tokens,
         )
         request = Request(inputs=prompt, stream=True, parameters=parameters)
 

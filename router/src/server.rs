@@ -193,6 +193,7 @@ async fn generate(
                             generated_tokens: response.generated_text.generated_tokens,
                             prefill: response.prefill,
                             tokens: response.tokens,
+                            top_tokens: response.top_tokens,
                             seed: response.generated_text.seed,
                         }
                     })
@@ -206,6 +207,7 @@ async fn generate(
                 tokens: response.tokens,
                 seed: response.generated_text.seed,
                 best_of_sequences,
+                top_tokens: response.top_tokens,
             })
         }
         false => None,
@@ -387,12 +389,16 @@ async fn generate_stream(
                                     // Prefill is ignored
                                     InferStreamResponse::Prefill(_) => {}
                                     // Yield event for every new token
-                                    InferStreamResponse::Token(token) => {
+                                    InferStreamResponse::Intermediate{
+                                        token,
+                                        top_tokens,
+                                    } => {
                                         tracing::debug!(parent: &span, "Token: {:?}", token);
 
                                         // StreamResponse
                                         let stream_token = StreamResponse {
                                             token,
+                                            top_tokens: top_tokens,
                                             generated_text: None,
                                             details: None,
                                         };
@@ -402,6 +408,7 @@ async fn generate_stream(
                                     // Yield event for last token and compute timings
                                     InferStreamResponse::End {
                                         token,
+                                        top_tokens,
                                         generated_text,
                                         start,
                                         queued,
@@ -453,6 +460,7 @@ async fn generate_stream(
 
                                         let stream_token = StreamResponse {
                                             token,
+                                            top_tokens,
                                             generated_text: Some(output_text),
                                             details
                                         };
@@ -510,6 +518,7 @@ pub async fn run(
     compat_return_full_text: bool,
     max_concurrent_requests: usize,
     max_best_of: usize,
+    max_top_tokens: u32,
     max_stop_sequences: usize,
     max_input_length: usize,
     max_total_tokens: usize,
@@ -572,6 +581,7 @@ pub async fn run(
         validation_workers,
         tokenizer,
         max_best_of,
+        max_top_tokens,
         max_stop_sequences,
         max_input_length,
         max_total_tokens,
