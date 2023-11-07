@@ -57,9 +57,10 @@ In general, you don't have to recreate the environment every time you want to up
 To just update the library, run in the base directory (in a previously created environment)
 
 ```shell
-OPENSSL_DIR=.openssl \
-OPENSSL_LIB_DIR=.openssl/lib \
-OPENSSL_INCLUDE_DIR=.openssl/include \
+export DIR=`pwd`
+OPENSSL_DIR=${DIR}/.openssl \
+OPENSSL_LIB_DIR=${DIR}/.openssl/lib \
+OPENSSL_INCLUDE_DIR=${DIR}/.openssl/include \
 BUILD_EXTENSIONS=false  \
     make install 
 ```
