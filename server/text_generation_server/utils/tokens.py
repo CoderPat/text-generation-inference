@@ -340,26 +340,39 @@ class HeterogeneousSampling:
         self.sampling_mapping = new_sampling_mapping
         return self
 
+
 def batch_top_tokens(
-    top_n_tokens: list[int], top_n_tokens_tensor: torch.Tensor, logprobs: torch.Tensor
+    top_tokens: list[int], top_tokens_tensor: torch.Tensor, logprobs: torch.Tensor
 ) -> Tuple[List[List[int]], List[List[float]]]:
     """Find the top n most likely tokens for a batch of generations.
     When multiple tokens have equal probabilities and they don't all fit, the
     remaining tokens are also returned.
+
+    Basically copied from HF's original repo to save some time
+    
+    Args:
+        top_tokens: List specifying the number of top tokens to retrieve for each item in the batch.
+        top_tokens_tensor: Torch tensor equivalent of top_tokens for use in tensor operations.
+        logprobs: Torch tensor of log probabilities, shape (batch_size, vocab_size).
+        
+    Returns:
+        A tuple containing two lists:
+            1. The indices of the top tokens for each logprob tensor in the batch.
+            2. The values of the top tokens for each logprob tensor in the batch.
     """
-    max_top_n = max(top_n_tokens)
-    # Early exit when top_n_tokens is not used
+    max_top_n = max(top_tokens)
+    # Early exit when top_tokens is not used
     if max_top_n == 0:
-        return [[]] * len(top_n_tokens), [[]] * len(top_n_tokens)
+        return [[]] * len(top_tokens), [[]] * len(top_tokens)
 
     # Ensure top_n doesn't exceed vocab size
-    top_n_tokens = [min(tok, logprobs.size(-1)) for tok in top_n_tokens]
+    top_tokens = [min(tok, logprobs.size(-1)) for tok in top_tokens]
 
-    # Parallel kthvalue adapted from https://discuss.pytorch.org/t/how-to-efficiently-get-the-k-th-largest-values-in-parallel/160529/2
+    # From https://discuss.pytorch.org/t/how-to-efficiently-get-the-k-th-largest-values-in-parallel/160529/2
     # Sorted topk is faster than torch.sort() since we only need a small subset
     sorted_top_k = torch.topk(logprobs, k=max_top_n, dim=1, sorted=True).values
     nth_highest = torch.gather(
-        sorted_top_k, 1, (top_n_tokens_tensor - 1).clip(min=0).unsqueeze(1)
+        sorted_top_k, 1, (top_tokens_tensor - 1).clip(min=0).unsqueeze(1)
     )
     nth_highest[nth_highest == -float("inf")] = torch.finfo(logprobs.dtype).min
 
@@ -367,9 +380,7 @@ def batch_top_tokens(
     top_n_indices = (logprobs >= nth_highest).nonzero()
     _, top_n_ishes = torch.unique_consecutive(top_n_indices[:, 0], return_counts=True)
 
-    # Take a new topk for these new max n values
     top_k = torch.topk(logprobs, k=top_n_ishes.max(), dim=1, sorted=True)
-
     top_n_ishes = top_n_ishes.tolist()
     top_indices = top_k.indices.tolist()
     top_values = top_k.values.tolist()
@@ -377,10 +388,10 @@ def batch_top_tokens(
     return (
         [
             idxs[:n] if req_n > 0 else []
-            for idxs, n, req_n in zip(top_indices, top_n_ishes, top_n_tokens)
+            for idxs, n, req_n in zip(top_indices, top_n_ishes, top_tokens)
         ],
         [
             vals[:n] if req_n > 0 else []
-            for vals, n, req_n in zip(top_values, top_n_ishes, top_n_tokens)
+            for vals, n, req_n in zip(top_values, top_n_ishes, top_tokens)
         ],
     )

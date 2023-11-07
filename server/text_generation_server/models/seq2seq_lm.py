@@ -403,7 +403,7 @@ class Seq2SeqLMBatch(Batch):
                 )
 
             if top_tokens_tensor is None:
-                top_tokens_tensor = batches[0].top_n_tokens_tensor.new_zeros(
+                top_tokens_tensor = batches[0].top_tokens_tensor.new_zeros(
                     total_batch_size,
                 )
             top_tokens_tensor[start_index:end_index] = batch.top_tokens_tensor
@@ -676,7 +676,7 @@ class Seq2SeqLM(Model):
             next_token_chooser,
             stopping_criteria,
             all_decoder_input_ids,
-            top_n_tokens,
+            top_tokens,
             top_token_ids,
             top_token_logprobs,
         ) in enumerate(iterator):
@@ -736,7 +736,7 @@ class Seq2SeqLM(Model):
                 else:
                     prefill_tokens = None
 
-                if top_n_tokens > 0:
+                if top_tokens > 0:
                     toptoken_texts = self.tokenizer.batch_decode(
                         top_token_ids,
                         clean_up_tokenization_spaces=False,
