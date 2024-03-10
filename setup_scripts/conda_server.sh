@@ -7,6 +7,11 @@
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 DIR="$(dirname "$DIR")"
 
+# define colors for output
+COLOR_GREEN='\033[0;32m'
+COLOR_NC='\033[0m'
+COLOR_RED='\033[0;31m'
+
 # currently can only build in TIR without extensions
 # seems un-important, as it only affects BLOOM/NEOX
 ENV_NAME=tgi-env
@@ -90,7 +95,7 @@ conda activate ${ENV_NAME}
 # # Install dependencies
 mamba install -y -c conda-forge coreutils "gxx<12.0" 
 mamba install -y -c conda-forge curl git tar
-mamba install -y -c conda-forge "rust>=1.65.0"
+mamba install -y -c conda-forge "rust>=1.74"
 mamba install -y -c conda-forge openssh 
 mamba install -y -c "nvidia/label/cuda-11.8.0" cuda-toolkit
 # pin pytorch due to some cuda-issue in pytorch==2.1.0 / something with vllm
@@ -101,9 +106,6 @@ mamba install -y -c pytorch -c nvidia pytorch==2.0.1 torchvision==0.15.2 torchau
 export LD_LIBRARY_PATH=${CONDA_HOME}/envs/${ENV_NAME}/lib:$LD_LIBRARY_PATH
 export PATH=${CONDA_HOME}/envs/${ENV_NAME}/bin:$PATH
 export CUDA_HOME=${CONDA_HOME}/envs/${ENV_NAME}
-
-# add cargo bin
-export PATH=~/.cargo/bin:$PATH
 
 # add protoc
 export PROTOC_ZIP=protoc-21.12-linux-x86_64.zip
@@ -154,6 +156,8 @@ if [ "$BUILD_VLLM" = true ] ; then
     rm -rf workdir/*
 fi
 
+echo -e "${COLOR_GREEN}DONE INSTALLING VLLM${COLOR_NC}"
+
 # install base package
 cd ${DIR}
 OPENSSL_DIR=${DIR}/.openssl \
@@ -162,6 +166,7 @@ OPENSSL_INCLUDE_DIR=${DIR}/.openssl/include \
 BUILD_EXTENSIONS=$BUILD_EXTENSIONS \
     make install
 
+echo -e "${COLOR_GREEN}DONE INSTALLING BASE PACKAGE${COLOR_NC}"
 
 # install flash attention
 if [ "$BUILD_FLASHATTN" = true ] ; then
@@ -176,6 +181,8 @@ if [ "$BUILD_FLASHATTN" = true ] ; then
 fi
 
 rm -rf workdir
+
+echo -e "${COLOR_GREEN}DONE INSTALLING FLASH ATTENTION${COLOR_NC}"
 
 # override protobuf
 pip install 'protobuf<3.21'
